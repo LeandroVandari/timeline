@@ -45,10 +45,8 @@ impl Serialize for When {
                     opt::DisplayTimeZone::Auto,
                     opt::DisplayCalendar::Always,
                     opt::ToStringRoundingOptions {
-                        smallest_unit: Some(opt::Unit::Microsecond),
-                        precision: temporal_rs::parsers::Precision::Digit(255),
-
-                        rounding_mode: Some(opt::RoundingMode::Floor),
+                        smallest_unit: Some(opt::Unit::Nanosecond),
+                        ..Default::default()
                     },
                 )
                 .unwrap(),
@@ -130,7 +128,7 @@ mod tests {
 
     #[test]
     fn when_serialization() {
-        for ((nanos, offset), calendar) in [0, 1774453000]
+        for ((nanos, offset), calendar) in [0, 1774453431]
             .into_iter()
             .zip([UtcOffset::from_minutes(180), UtcOffset::from_minutes(0)].into_iter())
             .zip([Calendar::GREGORIAN, Calendar::BUDDHIST, Calendar::HEBREW].into_iter())
