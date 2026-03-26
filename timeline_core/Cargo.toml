@@ -1,0 +1,13 @@
+[package]
+name = "timeline"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["serde_derive"] }
+slotmap = { version = "1.1.1", features = ["serde"] }
+temporal_rs = "0.2.0"
+thiserror = "2.0.18"
+
+[dev-dependencies]
+serde_json = "1.0.149"
