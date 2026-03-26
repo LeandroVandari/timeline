@@ -1,14 +1,14 @@
 use std::cmp::Ordering;
 
 use serde::{
-    Deserialize, Serialize, Serializer,
-    de::{self, Visitor},
-    ser::SerializeStruct,
+    Deserialize, Deserializer, Serialize, Serializer,
+    de::{self},
 };
 use temporal_rs::ZonedDateTime;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct When {
+    #[serde(serialize_with = "serialize_dt", deserialize_with = "deserialize_dt")]
     when: temporal_rs::ZonedDateTime,
 }
 
@@ -29,95 +29,42 @@ impl PartialEq for When {
 
 impl Eq for When {}
 
-impl Serialize for When {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("When", 1)?;
-        use temporal_rs::options as opt;
-        state.serialize_field(
-            "when",
-            &self
-                .when
-                .to_ixdtf_string(
-                    opt::DisplayOffset::Auto,
-                    opt::DisplayTimeZone::Auto,
-                    opt::DisplayCalendar::Always,
-                    opt::ToStringRoundingOptions {
-                        smallest_unit: Some(opt::Unit::Nanosecond),
-                        ..Default::default()
-                    },
-                )
-                .unwrap(),
-        )?;
-
-        state.end()
-    }
+fn serialize_dt<S>(dt: &ZonedDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use temporal_rs::options as opt;
+    serializer.serialize_str(
+        &dt.to_ixdtf_string(
+            opt::DisplayOffset::Auto,
+            opt::DisplayTimeZone::Auto,
+            opt::DisplayCalendar::Always,
+            opt::ToStringRoundingOptions {
+                smallest_unit: Some(opt::Unit::Nanosecond),
+                ..Default::default()
+            },
+        )
+        .unwrap(),
+    )
 }
 
-impl<'de> Deserialize<'de> for When {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        struct WhenVisitor;
+fn deserialize_dt<'de, D>(deserializer: D) -> Result<ZonedDateTime, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use temporal_rs::options as opt;
+    let s = <&str>::deserialize(deserializer)?;
 
-        impl<'de> Visitor<'de> for WhenVisitor {
-            type Value = When;
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("When struct with a field that contains a Temporal Timestamp")
-            }
-
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: serde::de::MapAccess<'de>,
-            {
-                use temporal_rs::options as opt;
-                if let Some(("when", when)) = map.next_entry::<&str, &str>()? {
-                    Ok(When {
-                        when: ZonedDateTime::from_utf8(
-                            when.as_bytes(),
-                            opt::Disambiguation::Reject,
-                            opt::OffsetDisambiguation::Reject,
-                        )
-                        .map_err(|e| {
-                            de::Error::custom(format!(
-                                "invalid datetime: {e} - expected an idtfx formatted datetime"
-                            ))
-                        })?,
-                    })
-                } else {
-                    Err(de::Error::missing_field("when"))
-                }
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::SeqAccess<'de>,
-            {
-                use temporal_rs::options as opt;
-                let when_str: String = seq
-                    .next_element()?
-                    .ok_or(de::Error::missing_field("when"))?;
-
-                Ok(When {
-                    when: ZonedDateTime::from_utf8(
-                        when_str.as_bytes(),
-                        opt::Disambiguation::Reject,
-                        opt::OffsetDisambiguation::Reject,
-                    )
-                    .map_err(|e| {
-                        de::Error::custom(format!(
-                            "invalid datetime: {e} - expected an idtfx formatted datetime"
-                        ))
-                    })?,
-                })
-            }
-        }
-
-        deserializer.deserialize_struct("When", &["when"], WhenVisitor)
-    }
+    temporal_rs::ZonedDateTime::from_utf8(
+        s.as_bytes(),
+        opt::Disambiguation::Reject,
+        opt::OffsetDisambiguation::Reject,
+    )
+    .map_err(|e| {
+        de::Error::custom(format!(
+            "invalid datetime: {e} - expected an idtfx formatted datetime"
+        ))
+    })
 }
 
 #[cfg(test)]
