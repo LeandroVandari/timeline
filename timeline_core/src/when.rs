@@ -1,10 +1,9 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Display};
 
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
     de::{self},
 };
-use temporal_rs::ZonedDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct When {
@@ -19,6 +18,10 @@ impl When {
     pub fn compare_instant(&self, other: &Self) -> Ordering {
         self.when.compare_instant(&other.when)
     }
+
+    pub fn inner(&self) -> &temporal_rs::ZonedDateTime {
+        &self.when
+    }
 }
 
 impl PartialEq for When {
@@ -29,7 +32,13 @@ impl PartialEq for When {
 
 impl Eq for When {}
 
-fn serialize_dt<S>(dt: &ZonedDateTime, serializer: S) -> Result<S::Ok, S::Error>
+impl Display for When {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.when)
+    }
+}
+
+fn serialize_dt<S>(dt: &temporal_rs::ZonedDateTime, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -48,7 +57,7 @@ where
     )
 }
 
-fn deserialize_dt<'de, D>(deserializer: D) -> Result<ZonedDateTime, D::Error>
+fn deserialize_dt<'de, D>(deserializer: D) -> Result<temporal_rs::ZonedDateTime, D::Error>
 where
     D: Deserializer<'de>,
 {

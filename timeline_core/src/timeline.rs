@@ -48,4 +48,10 @@ impl Timeline {
     pub fn event_data_mut(&mut self, id: EventId) -> Option<&mut EventData> {
         self.events.get_mut(id)
     }
+
+    pub fn ordered_events(&self) -> impl Iterator<Item = &EventData> {
+        self.sorted_events
+            .iter()
+            .map(|key| self.event_data(key.id()).unwrap())
+    }
 }

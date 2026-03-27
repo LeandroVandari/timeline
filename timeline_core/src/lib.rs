@@ -117,6 +117,14 @@ impl TimelineManager {
     pub fn with_tag(&self, id: TagId) -> Option<&HashSet<EventId>> {
         self.tags.get(id).map(|data| data.associated_events())
     }
+
+    pub fn ordered_events(&self) -> impl Iterator<Item = &EventData> {
+        self.timeline.ordered_events()
+    }
+
+    pub fn tag_data(&self, id: TagId) -> Option<&TagData> {
+        self.tags.get(id)
+    }
 }
 
 #[derive(Debug, Error)]

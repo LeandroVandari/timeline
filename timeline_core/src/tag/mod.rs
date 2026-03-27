@@ -11,7 +11,7 @@ new_key_type! {
 #[derive(Debug)]
 pub struct TagData {
     associated_events: HashSet<EventId>,
-    pub name: String,
+    name: String,
 }
 impl TagData {
     pub fn new(name: String) -> Self {
@@ -31,5 +31,9 @@ impl TagData {
 
     pub fn associated_events(&self) -> &HashSet<EventId> {
         &self.associated_events
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }

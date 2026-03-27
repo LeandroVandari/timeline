@@ -10,6 +10,10 @@ impl EventKey {
     pub(crate) fn new(id: super::EventId, when: When) -> Self {
         Self { id, when }
     }
+
+    pub fn id(&self) -> super::EventId {
+        self.id
+    }
 }
 
 impl From<&Event> for EventKey {
