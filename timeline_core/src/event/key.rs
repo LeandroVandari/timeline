@@ -30,8 +30,9 @@ impl PartialOrd for EventKey {
 
 impl Ord for EventKey {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.when
-            .compare_instant(&other.when)
-            .then_with(|| self.id.cmp(&other.id))
+        match self.when.partial_cmp(&other.when) {
+            None | Some(std::cmp::Ordering::Equal) => self.id.cmp(&other.id),
+            Some(order) => order,
+        }
     }
 }

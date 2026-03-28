@@ -49,7 +49,7 @@ fn respond(line: &str, manager: &mut TimelineManager) -> Result<bool> {
         }
         Commands::AddEvent { when, name } => {
             manager.add_event(EventData::new(
-                When::new(
+                When::instant(
                     ZonedDateTime::from_utf8(
                         when.as_bytes(),
                         temporal_rs::options::Disambiguation::Compatible,
