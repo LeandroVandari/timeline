@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use thiserror::Error;
 
@@ -15,7 +16,7 @@ mod tag;
 mod timeline;
 pub mod when;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TimelineManager {
     timeline: Timeline,
 

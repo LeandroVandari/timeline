@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use serde::{Deserialize, Serialize};
 use slotmap::new_key_type;
 
 use crate::event::EventId;
@@ -8,7 +9,7 @@ new_key_type! {
     pub struct TagId;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TagData {
     associated_events: HashSet<EventId>,
     name: String,

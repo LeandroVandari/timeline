@@ -1,6 +1,8 @@
-use crate::{event::Event, when::When};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+use crate::when::When;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventKey {
     id: super::EventId,
     when: When,
@@ -13,12 +15,6 @@ impl EventKey {
 
     pub fn id(&self) -> super::EventId {
         self.id
-    }
-}
-
-impl From<&Event> for EventKey {
-    fn from(e: &Event) -> Self {
-        Self::new(e.id(), e.when().clone())
     }
 }
 

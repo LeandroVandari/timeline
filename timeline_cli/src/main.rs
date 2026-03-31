@@ -1,4 +1,4 @@
-use std::{collections::HashSet, io::Write};
+use std::{collections::HashSet, io::Write, path::PathBuf};
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
@@ -76,6 +76,9 @@ fn respond(line: &str, manager: &mut TimelineManager) -> Result<bool> {
                 HashSet::new(),
             ))?;
         }
+        Commands::Save { out } => {
+            std::fs::write(out, serde_json::to_string_pretty(manager)?)?;
+        }
         _ => {}
     }
     Ok(false)
@@ -92,6 +95,7 @@ struct Cli {
 enum Commands {
     AddEvent { when: String, name: String },
     Show,
+    Save { out: PathBuf },
     AddTag,
     RemoveTag,
     RemoveEvent,

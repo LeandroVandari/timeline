@@ -1,8 +1,9 @@
 use crate::event::{self, EventData, EventId, EventKey};
+use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use std::collections::BTreeSet;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Timeline {
     /// All events sorted by their order of occurrence
     sorted_events: BTreeSet<event::EventKey>,
