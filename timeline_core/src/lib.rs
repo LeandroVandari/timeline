@@ -5,7 +5,7 @@ use slotmap::SlotMap;
 use thiserror::Error;
 
 use crate::{
-    event::{EventData, EventId},
+    event::{Event, EventData, EventId},
     tag::{TagData, TagId},
     timeline::Timeline,
 };
@@ -31,7 +31,7 @@ impl TimelineManager {
         }
     }
 
-    pub fn add_event(&mut self, data: EventData) -> Result<EventId, NonExistantTagsError> {
+    pub fn insert_event(&mut self, data: EventData) -> Result<EventId, NonExistantTagsError> {
         let event_id = self.timeline.insert(data);
 
         let mut bad_tags = Vec::new();
@@ -54,7 +54,7 @@ impl TimelineManager {
         Ok(event_id)
     }
 
-    pub fn add_tag(&mut self, data: TagData) -> Result<TagId, NonExistantEventsError> {
+    pub fn insert_tag(&mut self, data: TagData) -> Result<TagId, NonExistantEventsError> {
         let mut bad_events = Vec::new();
         let tag_id = self.tags.insert_with_key(|tag_id| {
             for &event_id in data.associated_events() {
@@ -119,13 +119,44 @@ impl TimelineManager {
         self.tags.get(id).map(|data| data.associated_events())
     }
 
-    pub fn ordered_events(&self) -> impl Iterator<Item = &EventData> {
-        self.timeline.ordered_events()
-    }
-
     pub fn tag_data(&self, id: TagId) -> Option<&TagData> {
         self.tags.get(id)
     }
+
+    pub fn add_tag_to_event(
+        &mut self,
+        tag: TagId,
+        event: EventId,
+    ) -> Result<(), NonExistantIdError> {
+        let tag_mut = self
+            .tags
+            .get_mut(tag)
+            .ok_or(NonExistantIdError::NonExistantTagError(tag))?;
+        self.timeline
+            .event_data_mut(event)
+            .ok_or(NonExistantIdError::NonExistantEventError(event))?
+            .add_tag(tag);
+        tag_mut.add_associated_event(event);
+
+        Ok(())
+    }
+
+    pub fn ordered_events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+        self.timeline.ordered_events()
+    }
+
+    pub fn events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+        self.timeline.events()
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum NonExistantIdError {
+    #[error("Tag {0:?} doesn't exist")]
+    NonExistantTagError(TagId),
+
+    #[error("Event {0:?} doesn't exist")]
+    NonExistantEventError(EventId),
 }
 
 #[derive(Debug, Error)]

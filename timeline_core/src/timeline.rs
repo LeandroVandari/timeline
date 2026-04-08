@@ -1,4 +1,4 @@
-use crate::event::{self, EventData, EventId, EventKey};
+use crate::event::{self, Event, EventData, EventId, EventKey};
 use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use std::collections::BTreeSet;
@@ -50,9 +50,13 @@ impl Timeline {
         self.events.get_mut(id)
     }
 
-    pub fn ordered_events(&self) -> impl Iterator<Item = &EventData> {
+    pub fn ordered_events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
         self.sorted_events
             .iter()
-            .map(|key| self.event_data(key.id()).unwrap())
+            .map(|key| Event::new(key.id(), self.event_data(key.id()).unwrap()))
+    }
+
+    pub fn events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+        self.events.iter().map(|(id, data)| Event::new(id, data))
     }
 }

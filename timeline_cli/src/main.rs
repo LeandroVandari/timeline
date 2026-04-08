@@ -48,7 +48,7 @@ fn respond(line: &str, manager: &mut TimelineManager) -> Result<bool> {
             std::io::stdout().flush()?;
         }
         Commands::AddEvent { when, name } => {
-            manager.add_event(EventData::new(
+            manager.insert_event(EventData::new(
                 When::instant(
                     ZonedDateTime::from_utf8(
                         when.as_bytes(),

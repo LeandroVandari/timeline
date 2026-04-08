@@ -28,11 +28,11 @@ impl EventData {
         &self.name
     }
 
-    pub fn add_tag(&mut self, tag: TagId) -> bool {
+    pub(crate) fn add_tag(&mut self, tag: TagId) -> bool {
         self.tags.insert(tag)
     }
 
-    pub fn remove_tag(&mut self, tag: &TagId) -> bool {
+    pub(crate) fn remove_tag(&mut self, tag: &TagId) -> bool {
         self.tags.remove(tag)
     }
 }
