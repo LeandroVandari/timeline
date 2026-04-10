@@ -12,18 +12,22 @@ pub struct EventData {
 }
 
 impl EventData {
+    #[must_use]
     pub fn when(&self) -> &When {
         &self.when
     }
 
+    #[must_use]
     pub fn tags(&self) -> &HashSet<TagId> {
         &self.tags
     }
 
+    #[must_use]
     pub fn new(when: When, name: String, tags: HashSet<TagId>) -> Self {
         EventData { when, name, tags }
     }
 
+    #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -32,7 +36,7 @@ impl EventData {
         self.tags.insert(tag)
     }
 
-    pub(crate) fn remove_tag(&mut self, tag: &TagId) -> bool {
-        self.tags.remove(tag)
+    pub(crate) fn remove_tag(&mut self, tag: TagId) -> bool {
+        self.tags.remove(&tag)
     }
 }

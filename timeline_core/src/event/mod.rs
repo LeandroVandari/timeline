@@ -18,12 +18,14 @@ impl<'a> Event<'a> {
     pub(crate) fn new(id: EventId, data: &'a EventData) -> Self {
         Self { id, data }
     }
+
+    #[must_use]
     pub fn id(&self) -> EventId {
         self.id
     }
 }
 
-impl<'a> Deref for Event<'a> {
+impl Deref for Event<'_> {
     type Target = EventData;
     fn deref(&self) -> &Self::Target {
         self.data

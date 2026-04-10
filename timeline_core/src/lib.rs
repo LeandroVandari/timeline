@@ -24,6 +24,7 @@ pub struct TimelineManager {
 }
 
 impl TimelineManager {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             timeline: Timeline::new(),
@@ -31,6 +32,10 @@ impl TimelineManager {
         }
     }
 
+    ///
+    ///
+    /// # Errors
+    /// This function will return an error if one or more tags contained in `data` no longer exist in the [`Timeline`]. Valid data *will* be added to the [`Timeline`].
     pub fn insert_event(&mut self, data: EventData) -> Result<EventId, NonExistantTagsError> {
         let event_id = self.timeline.insert(data);
 
@@ -40,7 +45,6 @@ impl TimelineManager {
             .event_data(event_id)
             .expect("Just added event to the timeline. It should still exist.")
             .tags()
-            .iter()
         {
             if let Some(tag_data) = self.tags.get_mut(tag) {
                 tag_data.add_associated_event(event_id);
@@ -54,6 +58,10 @@ impl TimelineManager {
         Ok(event_id)
     }
 
+    ///
+    ///
+    /// # Errors
+    /// This function will return an error if one or more events contained in `data` no longer exist in the [`Timeline`]. Valid data *will* be added to the [`Timeline`].
     pub fn insert_tag(&mut self, data: TagData) -> Result<TagId, NonExistantEventsError> {
         let mut bad_events = Vec::new();
         let tag_id = self.tags.insert_with_key(|tag_id| {
@@ -83,7 +91,7 @@ impl TimelineManager {
                 self.tags
                     .get_mut(tag)
                     .expect("Tags that exist in event should be present in the tags container.")
-                    .remove_associated_event(&id),
+                    .remove_associated_event(id),
                 "Tag should reflect the contained event"
             );
         }
@@ -99,30 +107,38 @@ impl TimelineManager {
                 self.timeline
                     .event_data_mut(event)
                     .expect("Events that are referenced in the tag should exist")
-                    .remove_tag(&id),
+                    .remove_tag(id),
                 "Event should register the contained tag"
-            )
+            );
         }
 
         Some(data)
     }
 
+    #[must_use]
     pub fn event_data(&self, id: EventId) -> Option<&EventData> {
         self.timeline.event_data(id)
     }
 
+    #[must_use]
     pub fn event_data_mut(&mut self, id: EventId) -> Option<&mut EventData> {
         self.timeline.event_data_mut(id)
     }
 
+    #[must_use]
     pub fn with_tag(&self, id: TagId) -> Option<&HashSet<EventId>> {
-        self.tags.get(id).map(|data| data.associated_events())
+        self.tags.get(id).map(TagData::associated_events)
     }
 
+    #[must_use]
     pub fn tag_data(&self, id: TagId) -> Option<&TagData> {
         self.tags.get(id)
     }
 
+    ///
+    ///
+    /// # Errors
+    /// This will return an error if either of the provided [`TagId`] and [`EventId`] do not exist in the [`Timeline`]. [`Timeline`] state will not be changed in case of an error.
     pub fn add_tag_to_event(
         &mut self,
         tag: TagId,
@@ -141,11 +157,11 @@ impl TimelineManager {
         Ok(())
     }
 
-    pub fn ordered_events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+    pub fn ordered_events(&self) -> impl Iterator<Item = Event<'_>> {
         self.timeline.ordered_events()
     }
 
-    pub fn events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+    pub fn events(&self) -> impl Iterator<Item = Event<'_>> {
         self.timeline.events()
     }
 }

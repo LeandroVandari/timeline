@@ -13,6 +13,7 @@ impl EventKey {
         Self { id, when }
     }
 
+    #[must_use]
     pub fn id(&self) -> super::EventId {
         self.id
     }

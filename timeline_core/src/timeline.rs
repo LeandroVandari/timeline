@@ -50,13 +50,13 @@ impl Timeline {
         self.events.get_mut(id)
     }
 
-    pub fn ordered_events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+    pub fn ordered_events(&self) -> impl Iterator<Item = Event<'_>> {
         self.sorted_events
             .iter()
             .map(|key| Event::new(key.id(), self.event_data(key.id()).unwrap()))
     }
 
-    pub fn events<'a>(&'a self) -> impl Iterator<Item = Event<'a>> {
+    pub fn events(&self) -> impl Iterator<Item = Event<'_>> {
         self.events.iter().map(|(id, data)| Event::new(id, data))
     }
 }

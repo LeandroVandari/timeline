@@ -18,6 +18,7 @@ pub enum When {
 pub struct ZonedDateTime(temporal_rs::ZonedDateTime);
 
 impl When {
+    #[must_use]
     pub fn instant(when: temporal_rs::ZonedDateTime) -> Self {
         Self::Instant(when.into())
     }

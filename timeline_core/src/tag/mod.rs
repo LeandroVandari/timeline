@@ -26,8 +26,8 @@ impl TagData {
         self.associated_events.insert(id);
     }
 
-    pub fn remove_associated_event(&mut self, id: &EventId) -> bool {
-        self.associated_events.remove(id)
+    pub fn remove_associated_event(&mut self, id: EventId) -> bool {
+        self.associated_events.remove(&id)
     }
 
     pub fn associated_events(&self) -> &HashSet<EventId> {
