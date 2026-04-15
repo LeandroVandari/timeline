@@ -1,7 +1,7 @@
 extends Node2D
 @onready var viewport: Viewport = get_viewport()
 @onready var timeline: Timeline = $".."
-const EXTRA_ROOM_FACTOR: float = 1.2
+const EXTRA_MARKER_ROOM: float = 1.1
 
 var offset: float = 0.
 var num_lines: int = 0
@@ -11,12 +11,12 @@ func _draw() -> void:
 	var YEAR_FONT = ThemeDB.fallback_font
 	print_verbose("Redrawing background lines...")
 	var size = viewport.get_visible_rect().size
-	var line_dist = (size.x * EXTRA_ROOM_FACTOR) / num_lines
+	var line_dist = (size.x * EXTRA_MARKER_ROOM) / num_lines
 	offset = fposmod(offset, line_dist)
 	var marker_iter = LineMarkerIterator.create_from_now( 0)
 
 	for i in range(num_lines):
-		var x_pos = (-size.x * EXTRA_ROOM_FACTOR) / 2 + offset + line_dist * i
+		var x_pos = (-size.x * EXTRA_MARKER_ROOM) / 2 + offset + line_dist * i
 		draw_line(Vector2(x_pos, -size.y / 2), Vector2(x_pos, size.y / 2), Color.DARK_GRAY)
 
 		var year = marker_iter.next_marker()
