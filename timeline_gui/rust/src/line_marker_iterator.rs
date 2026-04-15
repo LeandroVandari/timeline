@@ -12,7 +12,7 @@ pub struct LineMarkerIterator {
 #[godot_api]
 impl LineMarkerIterator {
     #[func]
-    pub fn create(start_date: String, max_level: MarkerLevel) -> Option<Gd<Self>> {
+    fn create(start_date: String, max_level: MarkerLevel) -> Option<Gd<Self>> {
         let date = match temporal_rs::ZonedDateTime::from_utf8(
             start_date.as_bytes(),
             temporal_rs::options::Disambiguation::Reject,
@@ -33,7 +33,16 @@ impl LineMarkerIterator {
     }
 
     #[func]
-    pub fn next_marker(&mut self) -> Option<Gd<LineMarker>> {
+    fn create_from_now(max_level: MarkerLevel) -> Gd<Self> {
+        Gd::from_object(Self {
+            curr: ZonedDateTime::now(),
+            max_level,
+            curr_level: MarkerLevel::Year,
+        })
+    }
+
+    #[func]
+    fn next_marker(&mut self) -> Option<Gd<LineMarker>> {
         self.next().map(Gd::from_object)
     }
 }
@@ -63,9 +72,10 @@ pub struct LineMarker {
 impl Iterator for LineMarkerIterator {
     type Item = LineMarker;
     fn next(&mut self) -> Option<Self::Item> {
+        self.curr += temporal_rs::Duration::new(1, 0, 0, 0, 0, 0, 0, 0, 0, 0).ok()?;
         Some(LineMarker {
             level: MarkerLevel::Year,
-            marker_str: "2026".into(),
+            marker_str: self.curr.year().to_string().to_godot(),
         })
     }
 }

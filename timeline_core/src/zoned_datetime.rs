@@ -1,4 +1,7 @@
-use std::{fmt::Display, ops::Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign, Sub},
+};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
@@ -27,6 +30,19 @@ impl Sub<temporal_rs::Duration> for ZonedDateTime {
     type Output = Self;
     fn sub(self, rhs: temporal_rs::Duration) -> Self::Output {
         Self(self.0.subtract(&rhs, None).unwrap())
+    }
+}
+
+impl Add<temporal_rs::Duration> for ZonedDateTime {
+    type Output = Self;
+    fn add(self, rhs: temporal_rs::Duration) -> Self::Output {
+        Self(self.0.add(&rhs, None).unwrap())
+    }
+}
+
+impl AddAssign<temporal_rs::Duration> for ZonedDateTime {
+    fn add_assign(&mut self, rhs: temporal_rs::Duration) {
+        self.0 = self.0.add(&rhs, None).unwrap()
     }
 }
 

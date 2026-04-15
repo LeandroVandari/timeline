@@ -13,7 +13,7 @@ func _draw() -> void:
 	var size = viewport.get_visible_rect().size
 	var line_dist = (size.x * EXTRA_ROOM_FACTOR) / num_lines
 	offset = fposmod(offset, line_dist)
-	var marker_iter = LineMarkerIterator.create("1970-01-01T00:00:00+00:00[+00:00]", 0)
+	var marker_iter = LineMarkerIterator.create_from_now( 0)
 
 	for i in range(num_lines):
 		var x_pos = (-size.x * EXTRA_ROOM_FACTOR) / 2 + offset + line_dist * i
