@@ -1,7 +1,10 @@
-use godot::{classes::InputEvent, prelude::*};
-use timeline_core::TimelineManager;
+use godot::prelude::*;
+use timeline_core::{TimelineManager, ZonedDateTime};
+mod line_marker_iterator;
 
 struct TimelineExtension;
+
+static YEARS_WIDTH: u32 = 20;
 
 #[gdextension]
 unsafe impl ExtensionLibrary for TimelineExtension {}
@@ -10,22 +13,27 @@ unsafe impl ExtensionLibrary for TimelineExtension {}
 #[class(init, base = Node)]
 struct Timeline {
     manager: TimelineManager,
-    visible_years: Vec<i16>,
+    leftmost_date: ZonedDateTime,
 }
 
 #[godot_api]
 impl INode for Timeline {
     fn ready(&mut self) {
-        self.visible_years = (-5..5).collect();
+        self.leftmost_date = ZonedDateTime::now()
+            - temporal_rs::Duration::new(YEARS_WIDTH as i64 / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                .unwrap();
+    }
+}
+
+#[godot_api]
+impl Timeline {
+    #[func]
+    pub fn leftmost_year(&self) -> i32 {
+        self.leftmost_date.year()
     }
 
-    fn process(&mut self, delta: f32) {
-        godot_print!("{:?}", self.visible_years)
-    }
-
-    fn input(&mut self, input: Gd<InputEvent>) {
-        if input.is_action("timeline_drag") {
-            self.visible_years.iter_mut().for_each(|y| *y += 1);
-        }
+    #[func]
+    pub fn years_width() -> u32 {
+        YEARS_WIDTH
     }
 }

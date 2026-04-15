@@ -1,9 +1,8 @@
 use std::{cmp::Ordering, fmt::Display};
 
-use serde::{
-    Deserialize, Deserializer, Serialize, Serializer,
-    de::{self},
-};
+use serde::{Deserialize, Serialize};
+
+use crate::ZonedDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum When {
@@ -13,9 +12,6 @@ pub enum When {
         end: ZonedDateTime,
     },
 }
-
-#[derive(Debug, Clone)]
-pub struct ZonedDateTime(temporal_rs::ZonedDateTime);
 
 impl When {
     #[must_use]
@@ -29,21 +25,21 @@ impl PartialOrd for When {
         match self {
             Self::Instant(a) => match other {
                 When::Period { start, end } => {
-                    if matches!(a.0.compare_instant(&start.0), Ordering::Less) {
+                    if matches!(a.compare_instant(start), Ordering::Less) {
                         return Some(Ordering::Less);
-                    } else if matches!(a.0.compare_instant(&end.0), Ordering::Greater) {
+                    } else if matches!(a.compare_instant(end), Ordering::Greater) {
                         return Some(Ordering::Greater);
                     }
                     None
                 }
-                When::Instant(b) => Some(a.0.compare_instant(&b.0)),
+                When::Instant(b) => Some(a.compare_instant(b)),
             },
 
             Self::Period { start, end } => match other {
                 Self::Instant(a) => {
-                    if matches!(start.0.compare_instant(&a.0), Ordering::Greater) {
+                    if matches!(start.compare_instant(a), Ordering::Greater) {
                         return Some(Ordering::Greater);
-                    } else if matches!(end.0.compare_instant(&a.0), Ordering::Less) {
+                    } else if matches!(end.compare_instant(a), Ordering::Less) {
                         return Some(Ordering::Less);
                     }
                     None
@@ -51,8 +47,8 @@ impl PartialOrd for When {
                 Self::Period {
                     start: other_start,
                     end: other_end,
-                } => match start.0.compare_instant(&other_start.0) {
-                    Ordering::Equal => Some(end.0.compare_instant(&other_end.0)),
+                } => match start.compare_instant(other_start) {
+                    Ordering::Equal => Some(end.compare_instant(other_end)),
                     order => Some(order),
                 },
             },
@@ -73,64 +69,6 @@ impl Display for When {
             When::Instant(t) => write!(f, "{t}"),
             When::Period { start, end } => write!(f, "{start} - {end}"),
         }
-    }
-}
-
-impl Serialize for ZonedDateTime {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use temporal_rs::options as opt;
-        serializer.serialize_str(
-            &self
-                .0
-                .to_ixdtf_string(
-                    opt::DisplayOffset::Auto,
-                    opt::DisplayTimeZone::Auto,
-                    opt::DisplayCalendar::Always,
-                    opt::ToStringRoundingOptions {
-                        smallest_unit: Some(opt::Unit::Nanosecond),
-                        ..Default::default()
-                    },
-                )
-                .unwrap(),
-        )
-    }
-}
-
-impl<'de> Deserialize<'de> for ZonedDateTime {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        use temporal_rs::options as opt;
-        let s = <&str>::deserialize(deserializer)?;
-
-        Ok(ZonedDateTime(
-            temporal_rs::ZonedDateTime::from_utf8(
-                s.as_bytes(),
-                opt::Disambiguation::Reject,
-                opt::OffsetDisambiguation::Reject,
-            )
-            .map_err(|e| {
-                de::Error::custom(format!(
-                    "invalid datetime: {e} - expected an idtfx formatted datetime"
-                ))
-            })?,
-        ))
-    }
-}
-
-impl Display for ZonedDateTime {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<temporal_rs::ZonedDateTime> for ZonedDateTime {
-    fn from(value: temporal_rs::ZonedDateTime) -> Self {
-        Self(value)
     }
 }
 

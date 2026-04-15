@@ -15,6 +15,8 @@ pub mod event;
 mod tag;
 mod timeline;
 pub mod when;
+mod zoned_datetime;
+pub use zoned_datetime::ZonedDateTime;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TimelineManager {
