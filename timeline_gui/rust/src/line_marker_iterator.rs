@@ -56,7 +56,8 @@ pub enum MarkerLevel {
 #[class(no_init)]
 pub struct LineMarker {
     level: MarkerLevel,
-    marker_str: String,
+    #[var(no_set)]
+    marker_str: GString,
 }
 
 impl Iterator for LineMarkerIterator {
