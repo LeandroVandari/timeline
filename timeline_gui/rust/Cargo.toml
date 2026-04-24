@@ -9,4 +9,5 @@ crate-type = ["cdylib"]
 [dependencies]
 godot = "0.5.0"
 temporal_rs = "0.2.3"
+thiserror = "2.0.18"
 timeline_core = { path = "../../timeline_core" }

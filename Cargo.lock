@@ -577,6 +577,7 @@ version = "0.1.0"
 dependencies = [
  "godot",
  "temporal_rs",
+ "thiserror",
  "timeline_core",
 ]
 

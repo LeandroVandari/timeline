@@ -1,6 +1,8 @@
 use godot::prelude::*;
 use timeline_core::ZonedDateTime;
 
+use crate::{line_marker::LineMarker, marker_level::MarkerLevel};
+
 #[derive(Debug, GodotClass)]
 #[class(no_init)]
 pub struct LineMarkerIterator {
@@ -47,35 +49,20 @@ impl LineMarkerIterator {
     }
 }
 
-#[derive(
-    Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default, GodotConvert, Var, Export,
-)]
-#[godot(via=i64)]
-pub enum MarkerLevel {
-    #[default]
-    Year = 0,
-    Month = 1,
-    Day = 2,
-    Hour = 3,
-    Minute = 4,
-    Second = 5,
-}
-
-#[derive(Debug, Clone, GodotClass)]
-#[class(no_init)]
-pub struct LineMarker {
-    level: MarkerLevel,
-    #[var(no_set)]
-    marker_str: GString,
-}
-
 impl Iterator for LineMarkerIterator {
     type Item = LineMarker;
     fn next(&mut self) -> Option<Self::Item> {
-        self.curr += temporal_rs::Duration::new(1, 0, 0, 0, 0, 0, 0, 0, 0, 0).ok()?;
-        Some(LineMarker {
-            level: MarkerLevel::Year,
-            marker_str: self.curr.year().to_string().to_godot(),
-        })
+        self.curr += self.curr_level.as_duration();
+        let marker = LineMarker::new(self.curr_level, &self.curr);
+
+        if self.curr_level != self.max_level {
+            self.curr_level = (self.curr_level as u8 + 1)
+                .try_into()
+                .expect("Since it's not the max level, we can go further");
+        } else {
+            self.curr_level = MarkerLevel::Year;
+        }
+
+        Some(marker)
     }
 }

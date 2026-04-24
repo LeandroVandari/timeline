@@ -21,6 +21,25 @@ impl ZonedDateTime {
         self.0.year()
     }
 
+    pub fn month(&self) -> u8 {
+        self.0.month()
+    }
+    pub fn day(&self) -> u8 {
+        self.0.day()
+    }
+
+    pub fn hour(&self) -> u8 {
+        self.0.hour()
+    }
+
+    pub fn minute(&self) -> u8 {
+        self.0.minute()
+    }
+
+    pub fn second(&self) -> u8 {
+        self.0.second()
+    }
+
     pub fn compare_instant(&self, other: &Self) -> std::cmp::Ordering {
         self.0.compare_instant(&other.0)
     }

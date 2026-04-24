@@ -1,6 +1,8 @@
 use godot::prelude::*;
 use timeline_core::{TimelineManager, ZonedDateTime};
+mod line_marker;
 mod line_marker_iterator;
+mod marker_level;
 
 struct TimelineExtension;
 
