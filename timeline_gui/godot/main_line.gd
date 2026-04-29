@@ -12,9 +12,10 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.is_action_pressed("timeline_drag"):
-		self.vertical_offset += event.relative.y
-		self.position.y += event.relative.y
+	var event_motion: InputEventMouseMotion = event as InputEventMouseMotion
+	if event_motion and Input.is_action_pressed("timeline_drag"):
+		self.vertical_offset += event_motion.relative.y
+		self.position.y += event_motion.relative.y
 
 
 func place_self() -> void:

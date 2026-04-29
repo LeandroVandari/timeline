@@ -1,7 +1,9 @@
+use std::sync::LazyLock;
+
 use godot::prelude::*;
 use temporal_rs::Calendar;
 
-use crate::year::Year;
+use crate::year::{ToYear, Year};
 
 #[derive(Debug, GodotClass)]
 #[class(no_init)]
@@ -9,24 +11,20 @@ pub struct YearIterator {
     curr: temporal_rs::PlainDate,
 }
 
+impl YearIterator {
+    // TODO: allow passing in desired calendar
+    pub fn new(start_year: &Year) -> Option<Self> {
+        Some(Self {
+            curr: temporal_rs::PlainDate::new(start_year.get(), 0, 0, Calendar::ISO).ok()?,
+        })
+    }
+}
+
 #[godot_api]
 impl YearIterator {
     #[func]
-    fn create(start_year: i32) -> Option<Gd<Self>> {
-        Some(Gd::from_object(Self {
-            // TODO: allow passing in desired calendar through godot
-            curr: temporal_rs::PlainDate::new(start_year, 0, 0, Calendar::ISO).ok()?,
-        }))
-    }
-
-    #[func]
-    fn create_from_now() -> Option<Gd<Self>> {
-        Self::create(
-            temporal_rs::Temporal::utc_now()
-                .plain_date_iso(None)
-                .ok()?
-                .year(),
-        )
+    fn create(start_year: Gd<Year>) -> Option<Gd<Self>> {
+        Self::new(&start_year.bind()).map(Gd::from_object)
     }
 
     #[func]
@@ -35,18 +33,31 @@ impl YearIterator {
     }
 }
 
+static ONE_YEAR: LazyLock<temporal_rs::Duration> = LazyLock::new(|| {
+    temporal_rs::duration::DateDuration::new(1, 0, 0, 0)
+        .unwrap()
+        .into()
+});
+
 impl Iterator for YearIterator {
     type Item = Year;
     fn next(&mut self) -> Option<Self::Item> {
-        let year = Year::new(self.curr.year());
+        let year = self.curr.to_year();
         self.curr = self
             .curr
-            .add(
-                &temporal_rs::duration::DateDuration::new(1, 0, 0, 0)
-                    .ok()?
-                    .into(),
-                Some(temporal_rs::options::Overflow::Reject),
-            )
+            .add(&ONE_YEAR, Some(temporal_rs::options::Overflow::Reject))
+            .ok()?;
+
+        Some(year)
+    }
+}
+
+impl DoubleEndedIterator for YearIterator {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let year = self.curr.to_year();
+        self.curr = self
+            .curr
+            .subtract(&ONE_YEAR, Some(temporal_rs::options::Overflow::Reject))
             .ok()?;
 
         Some(year)
