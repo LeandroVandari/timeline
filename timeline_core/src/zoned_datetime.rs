@@ -9,41 +9,36 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 pub struct ZonedDateTime(temporal_rs::ZonedDateTime);
 
 impl ZonedDateTime {
-    pub fn now() -> Self {
-        Self(
-            temporal_rs::Temporal::utc_now()
-                .zoned_date_time_iso(None)
-                .unwrap(),
-        )
-    }
-
+    #[must_use]
     pub fn year(&self) -> i32 {
         self.0.year()
     }
 
+    #[must_use]
     pub fn month(&self) -> u8 {
         self.0.month()
     }
+    #[must_use]
     pub fn day(&self) -> u8 {
         self.0.day()
     }
 
+    #[must_use]
     pub fn hour(&self) -> u8 {
         self.0.hour()
     }
 
+    #[must_use]
     pub fn minute(&self) -> u8 {
         self.0.minute()
     }
 
+    #[must_use]
     pub fn second(&self) -> u8 {
         self.0.second()
     }
 
-    pub fn round_in_place(&mut self, rounding_options: temporal_rs::options::RoundingOptions) {
-        self.0 = self.0.round(rounding_options).unwrap()
-    }
-
+    #[must_use]
     pub fn compare_instant(&self, other: &Self) -> std::cmp::Ordering {
         self.0.compare_instant(&other.0)
     }
@@ -65,7 +60,7 @@ impl Add<temporal_rs::Duration> for ZonedDateTime {
 
 impl AddAssign<temporal_rs::Duration> for ZonedDateTime {
     fn add_assign(&mut self, rhs: temporal_rs::Duration) {
-        self.0 = self.0.add(&rhs, None).unwrap()
+        self.0 = self.0.add(&rhs, None).unwrap();
     }
 }
 

@@ -41,8 +41,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if  event is InputEventMouseMotion and Input.is_action_pressed("timeline_drag"):
-
+	if event is InputEventMouseMotion and Input.is_action_pressed("timeline_drag"):
 		offset += (event as InputEventMouseMotion).relative.x
 
 

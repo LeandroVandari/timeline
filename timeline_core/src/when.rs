@@ -82,8 +82,8 @@ mod tests {
     fn when_serialization() {
         for ((nanos, offset), calendar) in [0, 1774453431]
             .into_iter()
-            .zip([UtcOffset::from_minutes(180), UtcOffset::from_minutes(0)].into_iter())
-            .zip([Calendar::GREGORIAN, Calendar::BUDDHIST, Calendar::HEBREW].into_iter())
+            .zip([UtcOffset::from_minutes(180), UtcOffset::from_minutes(0)])
+            .zip([Calendar::GREGORIAN, Calendar::BUDDHIST, Calendar::HEBREW])
         {
             let before = When::instant(
                 temporal_rs::ZonedDateTime::try_new(
