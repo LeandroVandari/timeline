@@ -10,7 +10,6 @@ use crate::{
     timeline::Timeline,
 };
 
-mod date_iterator;
 pub mod event;
 mod tag;
 mod timeline;

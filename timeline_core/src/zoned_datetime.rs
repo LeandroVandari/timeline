@@ -40,6 +40,10 @@ impl ZonedDateTime {
         self.0.second()
     }
 
+    pub fn round_in_place(&mut self, rounding_options: temporal_rs::options::RoundingOptions) {
+        self.0 = self.0.round(rounding_options).unwrap()
+    }
+
     pub fn compare_instant(&self, other: &Self) -> std::cmp::Ordering {
         self.0.compare_instant(&other.0)
     }

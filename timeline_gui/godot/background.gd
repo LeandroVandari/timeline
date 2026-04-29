@@ -13,21 +13,20 @@ func _draw() -> void:
 	var size: Vector2 = viewport.get_visible_rect().size
 	var line_dist: float = (size.x * EXTRA_MARKER_ROOM) / num_lines
 	offset = fposmod(offset, line_dist)
-	var marker_iter: LineMarkerIterator = LineMarkerIterator.create_from_now(5)
+	var year_iter: YearIterator = YearIterator.create_from_now()
 
 	for i: int in range(num_lines):
 		var x_pos: float = (-size.x * EXTRA_MARKER_ROOM) / 2 + offset + line_dist * i
 		draw_line(Vector2(x_pos, -size.y / 2), Vector2(x_pos, size.y / 2), Color.DARK_GRAY)
 
-		var year: LineMarker = marker_iter.next_marker()
-		while year.level != 0:
-			year = marker_iter.next_marker()
+		var year: Year = year_iter.next_year()
+		var year_text: String = year.label()
 
-		var year_text_size: Vector2 = YEAR_FONT.get_string_size(year.marker_str)
+		var year_text_size: Vector2 = YEAR_FONT.get_string_size(year_text)
 		draw_string(
 			YEAR_FONT,
 			Vector2(x_pos - year_text_size.x / 2, MainLine.vertical_offset + 20.),
-			year.marker_str,
+			year_text,
 			HORIZONTAL_ALIGNMENT_CENTER
 		)
 
