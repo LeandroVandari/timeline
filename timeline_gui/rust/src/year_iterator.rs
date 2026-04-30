@@ -15,7 +15,7 @@ impl YearIterator {
     // TODO: allow passing in desired calendar
     pub fn new(start_year: &Year) -> Option<Self> {
         Some(Self {
-            curr: temporal_rs::PlainDate::new(start_year.get(), 0, 0, Calendar::ISO).ok()?,
+            curr: temporal_rs::PlainDate::try_new(start_year.get(), 1, 1, Calendar::ISO).ok()?,
         })
     }
 }

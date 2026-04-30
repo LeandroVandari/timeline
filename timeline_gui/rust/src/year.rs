@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use std::fmt::Display;
 
-use crate::year_iterator::YearIterator;
+use crate::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
 #[derive(Debug, Clone, GodotClass)]
 #[class(no_init)]
@@ -11,7 +11,7 @@ pub struct Year {
 }
 
 impl Year {
-    fn current() -> Option<Self> {
+    pub fn current() -> Option<Self> {
         Some(Self {
             year: temporal_rs::Temporal::utc_now()
                 .plain_date_iso(None)
@@ -47,6 +47,16 @@ impl Year {
     fn get_previous(&self) -> Option<Gd<Self>> {
         let mut temp_iter = YearIterator::new(self)?;
         temp_iter.nth_back(1).map(Gd::from_object)
+    }
+
+    #[func]
+    fn months(&self) -> Gd<MonthIterator> {
+        Gd::from_object(self.clone().into())
+    }
+
+    #[func]
+    fn months_amount(&self) -> u16 {
+        self.months().bind().len()
     }
 }
 

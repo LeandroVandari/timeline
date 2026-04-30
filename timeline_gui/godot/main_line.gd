@@ -19,7 +19,7 @@ func _input(event: InputEvent) -> void:
 
 
 func place_self() -> void:
-	var size = viewport.get_visible_rect().size
+	var size: Vector2 = viewport.get_visible_rect().size
 	self.add_point(Vector2(-size.x / 2, self.vertical_offset))
 	self.add_point(Vector2(size.x / 2, self.vertical_offset))
 

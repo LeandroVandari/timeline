@@ -8,6 +8,7 @@
 [node name="Timeline" type="Timeline" parent="." unique_id=897387543]
 
 [node name="Background" parent="Timeline" unique_id=1507102082 instance=ExtResource("1_ig7tw")]
+num_lines = 20
 
 [node name="Main Line" type="Line2D" parent="Timeline" unique_id=1042739784]
 width = 7.0
