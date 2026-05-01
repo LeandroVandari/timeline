@@ -4,6 +4,7 @@ extends Node2D
 
 @export var line_dist: float = 100.
 var show_months: bool
+var num_lines: int
 
 var year_start: Year = Year.get_current()
 var offset: float = 0.
@@ -15,13 +16,14 @@ func _draw() -> void:
 	print_verbose("Redrawing background lines...")
 
 	var size: Vector2 = viewport.get_visible_rect().size
-	var num_lines: float = ceil(size.x / line_dist) + 2
 
 	# right edge of screen
 	if offset <= 0:
+		print_verbose("Dragging left, increasing year at which we start")
 		year_start = year_start.get_next()
 	# left edge
 	elif offset >= line_dist:
+		print_verbose("Dragging right, decreasing year at which we start")
 		year_start = year_start.get_previous()
 	offset = fposmod(offset, line_dist)
 
@@ -67,14 +69,32 @@ func _draw() -> void:
 func _ready() -> void:
 	# initialize the offset so that the starting year isn't exactly on the screen edge
 	offset = line_dist / 2
+	update_num_lines()
 
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.is_action_pressed("timeline_drag"):
 		offset += (event as InputEventMouseMotion).relative.x
+	elif event is InputEventMagnifyGesture:
+		line_dist *= (event as InputEventMagnifyGesture).factor
+
+		var prev_lines: int = num_lines
+		# Make sure the number of lines drawn is updated with the zoom level
+		update_num_lines()
+		# Since the amount of lines changed and we start rendering from left an update to the start
+		# is needed to keep each line the same year
+		if num_lines < prev_lines:
+			year_start = year_start.get_next()
+		elif num_lines > prev_lines:
+			year_start = year_start.get_previous()
+
+	else:
+		return
+	queue_redraw()
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
-	if Input.is_action_pressed("timeline_drag"):
-		queue_redraw()
+func update_num_lines() -> void:
+	var size: Vector2 = viewport.get_visible_rect().size
+
+	num_lines = ceil(size.x / line_dist)
+	num_lines += num_lines % 2
