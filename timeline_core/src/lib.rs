@@ -1,21 +1,21 @@
-use std::collections::HashSet;
-
-use serde::{Deserialize, Serialize};
-use slotmap::SlotMap;
-use thiserror::Error;
-
 use crate::{
     event::{Event, EventData, EventId},
     tag::{TagData, TagId},
     timeline::Timeline,
 };
+use serde::{Deserialize, Serialize};
+use slotmap::SlotMap;
+use std::collections::HashSet;
+use thiserror::Error;
+pub use zoned_datetime::ZonedDateTime;
 
+#[cfg(feature = "date_iteration")]
+pub mod date_iteration;
 pub mod event;
 mod tag;
 mod timeline;
 pub mod when;
 mod zoned_datetime;
-pub use zoned_datetime::ZonedDateTime;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TimelineManager {
