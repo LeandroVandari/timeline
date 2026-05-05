@@ -1,6 +1,5 @@
 extends Node2D
 @onready var viewport: Viewport = get_viewport()
-@onready var timeline: Timeline = $".."
 
 @export var line_dist: float = 100.
 var show_months: bool
@@ -87,7 +86,6 @@ func _input(event: InputEvent) -> void:
 			year_start = year_start.get_next()
 		elif num_lines > prev_lines:
 			year_start = year_start.get_previous()
-
 	else:
 		return
 	queue_redraw()

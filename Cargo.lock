@@ -608,6 +608,7 @@ name = "rust"
 version = "0.1.0"
 dependencies = [
  "godot",
+ "serde_json",
  "temporal_rs",
  "thiserror",
  "timeline_core",
