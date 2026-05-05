@@ -18,7 +18,7 @@ func _draw() -> void:
 	var size: Vector2 = viewport.get_visible_rect().size
 
 	# right edge of screen
-	if offset <= 0:
+	if offset < 0:
 		print_verbose("Dragging left, increasing year at which we start")
 		year_start = year_start.get_next()
 	# left edge
