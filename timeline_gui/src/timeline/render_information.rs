@@ -22,7 +22,7 @@ impl Default for TimelineRenderInformation {
     fn default() -> Self {
         Self {
             year_start: Year::current().unwrap(),
-            horizontal_offset: 0.,
+            horizontal_offset: 50.,
             line_dist: 100.,
             size: None,
         }

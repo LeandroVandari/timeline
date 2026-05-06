@@ -44,14 +44,13 @@ impl TimelineRendererPlugin {
             let year_line_mesh = meshes.add(Rectangle::new(1., timeline_size.y));
             let year_line_material = materials.add(Color::srgb(0.8, 0.8, 0.8));
 
-            let num_lines =
-                ((timeline_size.x / render_info.line_dist).ceil() as u32).next_multiple_of(2);
+            let num_lines = (timeline_size.x / render_info.line_dist).floor() as u32;
             let mut year_iterator = YearIterator::new(&render_info.year_start).unwrap();
             for i in 0..num_lines {
                 let year_x_pos = pos.translation.x
-                    - (render_info.line_dist * num_lines as f32) / 2.
                     + render_info.line_dist * i as f32
-                    + render_info.horizontal_offset;
+                    + render_info.horizontal_offset
+                    - timeline_size.x / 2.;
                 let vertical_line = commands
                     .spawn((
                         Mesh2d(year_line_mesh.clone()),
