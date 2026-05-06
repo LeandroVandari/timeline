@@ -1,3 +1,4 @@
+use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::YearIterator;
 
@@ -12,6 +13,7 @@ impl Plugin for TimelineRendererPlugin {
 }
 
 impl TimelineRendererPlugin {
+    #[instrument(skip_all)]
     fn spawn_timeline_render_components(
         mut commands: Commands,
         added_render_info: Query<(Entity, &TimelineRenderInformation, &Transform), Added<Timeline>>,
@@ -22,6 +24,10 @@ impl TimelineRendererPlugin {
         let window_size = window.size();
 
         for (entity, render_info, pos) in added_render_info {
+            info!(
+                "Spawning timeline for entity {} with render configuration {:#?}",
+                entity, render_info
+            );
             let timeline_size = render_info.size.unwrap_or(window_size);
 
             // Main, horizontal line

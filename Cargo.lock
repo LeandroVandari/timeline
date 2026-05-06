@@ -4828,6 +4828,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "timeline_core",
+ "tracing",
 ]
 
 [[package]]
