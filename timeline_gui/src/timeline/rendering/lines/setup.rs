@@ -23,7 +23,6 @@ impl super::TimelineLinesPlugin {
         mut materials: ResMut<Assets<ColorMaterial>>,
         mut meshes: ResMut<Assets<Mesh>>,
         timeline_info_query: Query<(
-            &Transform,
             Option<&TimelineScreenSize>,
             &TimelineRenderRange,
             &TimelineLineSeparation,
@@ -36,7 +35,7 @@ impl super::TimelineLinesPlugin {
                 "Creating vertical line render info for timeline {}",
                 added_render_info.entity()
             );
-            let (timeline_pos, size, render_range, &line_separation, &zoom_level) =
+            let (size, render_range, &line_separation, &zoom_level) =
                 timeline_info_query.get(added_render_info.entity()).unwrap();
             let render_size = size.map_or(window.size(), |s| **s);
 
@@ -48,7 +47,7 @@ impl super::TimelineLinesPlugin {
                     material: materials.add(Color::srgb(0.8, 0.8, 0.8)),
                 },
                 WrapAroundInfo {
-                    center: timeline_pos.translation.x,
+                    center: 0.,
                     // Needs a half-line buffer on each size so the line doesn't teleport exacly on top of the one on the other side.
                     // Midpoint: (occupied_space / 2) + (scaled_line_separation / 2)
                     half_width: f32::midpoint(draw_width, *line_separation * *zoom_level),
