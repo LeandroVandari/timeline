@@ -7,3 +7,7 @@ edition = "2024"
 bevy = { version = "0.18.1", default-features = false, features = ["2d"] }
 timeline_core = { path = "../timeline_core", features = ["date_iteration"] }
 tracing = "0.1.44"
+
+[features]
+debug = ["bevy/debug", "bevy/dynamic_linking"]
+default = ["debug"]
