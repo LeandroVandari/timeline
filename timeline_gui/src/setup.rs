@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::TimelineManager;
 
 use crate::timeline::{Timeline, render_information::TimelineRenderInformation};
@@ -13,7 +13,7 @@ impl Plugin for SetupPlugin {
 
 impl SetupPlugin {
     fn spawn_camera(mut commands: Commands) {
-        commands.spawn(Camera2d);
+        commands.spawn((Camera2d, RenderLayers::layer(0), MainCamera));
     }
 
     fn spawn_timeline(mut commands: Commands) {
@@ -26,3 +26,6 @@ impl SetupPlugin {
         ));
     }
 }
+
+#[derive(Debug, Component)]
+pub struct MainCamera;
