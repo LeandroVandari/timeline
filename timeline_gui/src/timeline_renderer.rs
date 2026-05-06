@@ -46,7 +46,6 @@ impl TimelineRendererPlugin {
 
             let num_lines =
                 ((timeline_size.x / render_info.line_dist).ceil() as u32).next_multiple_of(2);
-
             let mut year_iterator = YearIterator::new(&render_info.year_start).unwrap();
             for i in 0..num_lines {
                 let year_x_pos = pos.translation.x
@@ -61,7 +60,8 @@ impl TimelineRendererPlugin {
                     ))
                     .with_child((
                         Text2d::new(year_iterator.next().unwrap().to_string()),
-                        Transform::from_xyz(year_x_pos, pos.translation.y - 15., 0.),
+                        // Transform from child is just parent offset
+                        Transform::from_xyz(0., -15., 0.),
                     ))
                     .id();
                 commands.entity(entity).add_child(vertical_line);
