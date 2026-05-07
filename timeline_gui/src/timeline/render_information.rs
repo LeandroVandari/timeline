@@ -3,7 +3,7 @@ use timeline_core::date_iteration::year::Year;
 
 /// Information that describes how a [`Timeline`] should be rendered.
 #[derive(Debug, Component)]
-#[require(Transform)]
+#[require(Transform, super::Timeline)]
 pub struct TimelineRenderInformation {
     /// Leftmost year rendered.
     pub year_start: Year,
