@@ -1,9 +1,13 @@
-use bevy::prelude::*;
+use bevy::{
+    ecs::{lifecycle::HookContext, world::DeferredWorld},
+    prelude::*,
+};
 use timeline_core::date_iteration::year::Year;
 
 /// Information that describes how a [`Timeline`] should be rendered.
 #[derive(Debug, Component)]
-#[require(Transform, super::Timeline)]
+#[require(Transform, super::Timeline, InheritedVisibility)]
+#[component(on_add = Self::emit_message_added)]
 pub struct TimelineRenderInformation {
     /// Leftmost year rendered.
     pub year_start: Year,
@@ -14,6 +18,21 @@ pub struct TimelineRenderInformation {
     pub line_dist: f32,
     /// How much space the rendered [`Timeline`] should occupy. Should default to the maximum available if [None].
     pub size: Option<Vec2>,
+}
+
+impl TimelineRenderInformation {
+    fn emit_message_added(mut world: DeferredWorld, ctx: HookContext) {
+        world.write_message(TimelineRenderInformationCreatedMessage(ctx.entity));
+    }
+}
+
+#[derive(Debug, Message)]
+pub struct TimelineRenderInformationCreatedMessage(Entity);
+
+impl TimelineRenderInformationCreatedMessage {
+    pub fn entity(&self) -> Entity {
+        self.0
+    }
 }
 
 impl Default for TimelineRenderInformation {
