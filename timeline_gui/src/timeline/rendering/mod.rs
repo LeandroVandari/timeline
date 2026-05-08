@@ -1,5 +1,4 @@
 use bevy::camera::Viewport;
-use bevy::camera::visibility::RenderLayers;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::YearIterator;
@@ -25,23 +24,20 @@ impl Plugin for TimelineRendererPlugin {
         )
         .add_observer(
             |trigger: On<Add, TimelineRenderInformation>,
-             mut writer: MessageWriter<TimelineRenderInformationCreatedMessage>, 
-             #[cfg(feature = "debug")]
+             mut commands: Commands,
+             mut writer: MessageWriter<TimelineRenderInformationCreatedMessage>,
              info_query: Query<&TimelineRenderInformation>| {
+                let render_info = info_query
+                    .get(trigger.entity)
+                    .expect("The entity just had the component added to it.");
                 info!(
                     "Spawning rendering components for timeline {} with render configuration {:#?}",
-                    trigger.entity,
-                    cfg_select! {
-                        feature="debug" => {
-                            info_query.get(trigger.entity).expect("The entity just had the component added to it.")
-                        }
-
-                        _ => {
-                            "{Turn on debug feature in order to see the render configuration}"
-                        }
-                    }
-                    
+                    trigger.entity, render_info
                 );
+                commands
+                    .entity(trigger.entity)
+                    .insert(render_info.layers.clone());
+
                 writer.write(TimelineRenderInformationCreatedMessage::from_trigger(
                     trigger,
                 ));
@@ -72,7 +68,6 @@ impl TimelineRendererPlugin {
             let (render_info, pos) = render_info_query.get(entity).expect("The message is only called with an entity that has TimelineRenderInformation, and that requires Transform");
             trace!("Spawning camera for timeline {entity}");
             let timeline_size = render_info.size.unwrap_or(window.size());
-            let render_layer = Self::get_render_layer(entity);
 
             // The viewport position is on the top-left corner. In order to convert the pos translation (which has (0,0) at the center) to that,
             // we need to move the coords left and up, which due to Bevy's coordinate system means adding y and subtracting x.
@@ -80,28 +75,24 @@ impl TimelineRendererPlugin {
                 .translation
                 .with_x(pos.translation.x - timeline_size.x / 2.)
                 .with_y(pos.translation.y + timeline_size.y / 2.);
-            commands
-                .entity(entity)
-                // Make sure the entity is in the same render layer
-                .insert(render_layer.clone())
-                .with_child((
-                    Camera2d,
-                    render_layer,
-                    Camera {
-                        order: entity.index_u32() as isize,
-                        viewport: Some(Viewport {
-                            physical_position: (main_camera
-                                .0
-                                .world_to_viewport(main_camera.1, viewport_pos)
-                                .unwrap()
-                                * window.scale_factor())
-                            .as_uvec2(),
-                            physical_size: (timeline_size * window.scale_factor()).as_uvec2(),
-                            ..Default::default()
-                        }),
+            commands.entity(entity).with_child((
+                Camera2d,
+                render_info.layers.clone(),
+                Camera {
+                    order: entity.index_u32() as isize,
+                    viewport: Some(Viewport {
+                        physical_position: (main_camera
+                            .0
+                            .world_to_viewport(main_camera.1, viewport_pos)
+                            .unwrap()
+                            * window.scale_factor())
+                        .as_uvec2(),
+                        physical_size: (timeline_size * window.scale_factor()).as_uvec2(),
                         ..Default::default()
-                    },
-                ));
+                    }),
+                    ..Default::default()
+                },
+            ));
         }
     }
 
@@ -124,14 +115,13 @@ impl TimelineRendererPlugin {
                 .expect("Message should refer to an entity with proper components.");
             trace!("Spawning lines for timeline {entity}");
             let timeline_size = render_info.size.unwrap_or(window.size());
-            let render_layer = Self::get_render_layer(entity);
 
             // Main, horizontal line
             commands.entity(entity).with_child((
                 Mesh2d(meshes.add(Rectangle::new(timeline_size.x, 3.))),
                 MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
                 pos.with_translation(Vec3::ZERO),
-                render_layer.clone(),
+                render_info.layers.clone(),
             ));
 
             // Vertical lines for years
@@ -151,11 +141,11 @@ impl TimelineRendererPlugin {
                     Mesh2d(year_line_mesh.clone()),
                     MeshMaterial2d(year_line_material.clone()),
                     pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
-                    render_layer.clone(),
+                    render_info.layers.clone(),
                     children![(
                         Text2d::new(year_iterator.next().unwrap().to_string()),
                         Transform::from_xyz(0., -15., 0.),
-                        render_layer.clone()
+                        render_info.layers.clone()
                     )],
                 ));
             }
@@ -187,7 +177,7 @@ impl TimelineRendererPlugin {
                     },
                     pos.with_translation(Vec3::new(0.,0.,-100.)),
                     Pickable::default(),
-                    Self::get_render_layer(msg.entity())
+                    render_info.layers.clone(),
                 ))
                 .observe(|trigger: On<Pointer<Drag>>| {
                     if matches!(trigger.button, PointerButton::Primary) {
@@ -198,10 +188,5 @@ impl TimelineRendererPlugin {
 
             commands.entity(entity).add_child(background_entity);
         }
-    }
-
-    /// Gets the render layer the timeline will be rendered at.
-    fn get_render_layer(entity: Entity) -> RenderLayers {
-        RenderLayers::layer(entity.index_u32() as usize)
     }
 }
