@@ -5,9 +5,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::YearIterator;
 
 use crate::setup::MainCamera;
-use crate::timeline::render_information::{
-    TimelineRenderInformation, TimelineRenderInformationCreatedMessage,
-};
+pub use render_information::TimelineRenderInformation;
+use render_information::TimelineRenderInformationCreatedMessage;
+
+mod render_information;
 
 pub struct TimelineRendererPlugin;
 
@@ -17,6 +18,30 @@ impl Plugin for TimelineRendererPlugin {
             Update,
             (Self::spawn_timeline_camera, Self::spawn_timeline_lines)
                 .run_if(on_message::<TimelineRenderInformationCreatedMessage>),
+        )
+        .add_observer(
+            |trigger: On<Add, TimelineRenderInformation>,
+             mut writer: MessageWriter<TimelineRenderInformationCreatedMessage>, 
+             #[cfg(feature = "debug")]
+             info_query: Query<&TimelineRenderInformation>| {
+                info!(
+                    "Spawning rendering components for timeline {} with render configuration {:#?}",
+                    trigger.entity,
+                    cfg_select! {
+                        feature="debug" => {
+                            info_query.get(trigger.entity).expect("The entity just had the component added to it.")
+                        }
+
+                        _ => {
+                            "{Turn on debug feature in order to see the render configuration}"
+                        }
+                    }
+                    
+                );
+                writer.write(TimelineRenderInformationCreatedMessage::from_trigger(
+                    trigger,
+                ));
+            },
         )
         .add_message::<TimelineRenderInformationCreatedMessage>();
     }
@@ -41,10 +66,7 @@ impl TimelineRendererPlugin {
         for msg in added_render_infos.read() {
             let entity = msg.entity();
             let (render_info, pos) = render_info_query.get(entity).expect("The message is only called with an entity that has TimelineRenderInformation, and that requires Transform");
-            info!(
-                "Spawning camera for timeline {} with render configuration {:#?}",
-                entity, render_info
-            );
+            trace!("Spawning camera for timeline {entity}");
             let timeline_size = render_info.size.unwrap_or(window.size());
             let render_layer = Self::get_render_layer(entity);
 
@@ -79,7 +101,7 @@ impl TimelineRendererPlugin {
         }
     }
 
-    /// Spawn the lines for each ear and corresponding labels for drawing the timelines.
+    /// Spawn the lines for each year and corresponding labels for drawing the timelines.
     #[instrument(skip_all)]
     fn spawn_timeline_lines(
         mut commands: Commands,
@@ -96,10 +118,7 @@ impl TimelineRendererPlugin {
             let (render_info, pos) = render_info_query
                 .get(entity)
                 .expect("Message should refer to an entity with proper components.");
-            info!(
-                "Spawning lines for timeline {} with render configuration {:#?}",
-                entity, render_info
-            );
+            trace!("Spawning lines for timeline {entity}");
             let timeline_size = render_info.size.unwrap_or(window.size());
             let render_layer = Self::get_render_layer(entity);
 

@@ -1,7 +1,7 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::TimelineManager;
 
-use crate::timeline::{Timeline, render_information::TimelineRenderInformation};
+use crate::timeline::{Timeline, rendering::TimelineRenderInformation};
 
 pub struct SetupPlugin;
 

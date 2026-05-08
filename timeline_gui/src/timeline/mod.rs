@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use timeline_core::TimelineManager;
 
-pub mod render_information;
+pub mod rendering;
 
 #[derive(Debug, Component, Default)]
 /// A historical timeline to be held by the Bevy ECS.

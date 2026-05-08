@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{setup::SetupPlugin, timeline_renderer::TimelineRendererPlugin};
+use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
 
 mod setup;
 mod timeline;
-mod timeline_renderer;
 
 fn main() -> AppExit {
     App::new()
