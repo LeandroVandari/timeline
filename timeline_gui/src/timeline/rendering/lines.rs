@@ -24,6 +24,7 @@ pub fn spawn_timeline_lines(
 
         // Main, horizontal line
         commands.entity(entity).with_child((
+            MainLine,
             Mesh2d(meshes.add(Rectangle::new(timeline_size.x, 3.))),
             MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
             pos.with_translation(Vec3::ZERO),
@@ -44,11 +45,13 @@ pub fn spawn_timeline_lines(
                 + timeline_size.x / 2.;
 
             commands.entity(entity).with_child((
+                VerticalLine,
                 Mesh2d(year_line_mesh.clone()),
                 MeshMaterial2d(year_line_material.clone()),
                 pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
                 render_info.layers.clone(),
                 children![(
+                    YearLabel,
                     Text2d::new(year_iterator.next().unwrap().to_string()),
                     Transform::from_xyz(0., -15., 0.),
                     render_info.layers.clone()
@@ -57,3 +60,11 @@ pub fn spawn_timeline_lines(
         }
     }
 }
+
+#[derive(Debug, Component)]
+pub struct VerticalLine;
+#[derive(Debug, Component)]
+pub struct MainLine;
+
+#[derive(Debug, Component)]
+pub struct YearLabel;
