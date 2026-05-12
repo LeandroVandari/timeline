@@ -16,12 +16,16 @@ impl Plugin for TimelineRendererPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
+            ((
                 Self::spawn_timeline_camera,
-                lines::spawn_timeline_lines,
-                dragging::spawn_dragging_background,
+                Self::normalize_transform,
+                (
+                    dragging::spawn_dragging_background,
+                    lines::spawn_timeline_lines,
+                ),
             )
-                .run_if(on_message::<TimelineRenderInformationCreatedMessage>),
+                .chain())
+            .run_if(on_message::<TimelineRenderInformationCreatedMessage>),
         )
         .add_observer(
             |trigger: On<Add, TimelineRenderInformation>,
@@ -49,6 +53,22 @@ impl Plugin for TimelineRendererPlugin {
 }
 
 impl TimelineRendererPlugin {
+    /// Normalizes the timeline's [`Transform`] so that it doesn't have a rotation.
+    ///
+    /// All rotations are handled directly in the [`Camera`] designated to the timeline.
+    #[instrument(skip_all)]
+    fn normalize_transform(
+        mut added_render_infos: MessageReader<TimelineRenderInformationCreatedMessage>,
+        mut transforms: Query<&mut Transform, With<TimelineRenderInformation>>,
+    ) {
+        for msg in added_render_infos.read() {
+            match transforms.get_mut(msg.entity()) {
+                Ok(mut pos) => pos.rotation = Quat::IDENTITY,
+                Err(e) => error!("Timeline didn't have transform: {e}"),
+            }
+        }
+    }
+
     /// Creates a new camera to render the timeline whose [`TimelineRenderInformation`] was just spawned.
     ///
     /// We need to make sure only the proper area from the timeline is drawn by creating a custom camera just to render it whose viewport spans exactly
@@ -93,6 +113,7 @@ impl TimelineRendererPlugin {
                     }),
                     ..Default::default()
                 },
+                Transform::from_rotation(pos.rotation),
             ));
         }
     }
