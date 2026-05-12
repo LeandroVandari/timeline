@@ -1,5 +1,11 @@
 #![expect(clippy::needless_pass_by_value, reason = "Bevy Queries")]
 
+#[cfg(feature = "debug")]
+use bevy::{
+    dev_tools::diagnostics_overlay::DiagnosticsOverlayPlugin,
+    diagnostic::FrameTimeDiagnosticsPlugin, pbr::diagnostic::MaterialAllocatorDiagnosticPlugin,
+    render::diagnostic::MeshAllocatorDiagnosticPlugin,
+};
 use bevy::{prelude::*, winit::WinitSettings};
 
 use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
@@ -22,6 +28,16 @@ fn main() -> AppExit {
         }))
         .insert_resource(WinitSettings::desktop_app())
         .insert_resource(ClearColor(Color::hsv(0., 0., 0.3)))
-        .add_plugins((SetupPlugin, TimelineRendererPlugin))
+        .add_plugins((
+            SetupPlugin,
+            TimelineRendererPlugin,
+            #[cfg(feature = "debug")]
+            (
+                FrameTimeDiagnosticsPlugin::default(),
+                DiagnosticsOverlayPlugin,
+                MaterialAllocatorDiagnosticPlugin::<StandardMaterial>::new(""),
+                MeshAllocatorDiagnosticPlugin,
+            ),
+        ))
         .run()
 }

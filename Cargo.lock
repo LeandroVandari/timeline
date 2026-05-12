@@ -873,6 +873,7 @@ dependencies = [
  "bevy_material",
  "bevy_math",
  "bevy_mesh",
+ "bevy_pbr",
  "bevy_reflect",
  "bevy_render",
  "bevy_shader",
@@ -993,6 +994,8 @@ dependencies = [
  "bevy_time",
  "bevy_transform",
  "bevy_ui",
+ "bevy_ui_render",
+ "bevy_ui_widgets",
  "bevy_utils",
  "bevy_window",
  "bevy_winit",
@@ -4730,6 +4733,7 @@ name = "timeline_gui"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "log",
  "timeline_core",
  "tracing",
 ]
