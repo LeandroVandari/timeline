@@ -1,11 +1,12 @@
-use bevy::{
-    ecs::entity::{EntityHashSet, EntitySet},
-    prelude::*,
-    window::PrimaryWindow,
-};
+use bevy::{prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
-use crate::timeline::rendering::lines::{MainLine, VerticalLine, YearLabel};
+use crate::timeline::rendering::{
+    dragging::relationship::DraggedBy,
+    lines::{MainLine, VerticalLine},
+};
+
+pub mod relationship;
 
 #[instrument(skip_all)]
 pub fn spawn_dragging_background(
@@ -44,56 +45,43 @@ pub fn spawn_dragging_background(
     }
 }
 
-type VerticalLineFilters = (With<VerticalLine>, Without<MainLine>);
-type MainLineFilters = (With<MainLine>, Without<VerticalLine>);
-type YearLabelsFilters = (Without<MainLine>, Without<VerticalLine>, With<YearLabel>);
+type VerticalLinesFilter = (With<VerticalLine>, Without<MainLine>, Without<DraggedBy>);
+type MainLineFilter = (With<MainLine>, Without<VerticalLine>, Without<DraggedBy>);
+type ToDragFilter = (Without<MainLine>, Without<VerticalLine>);
 
 /// Handle translation of the timeline's labels/lines/rendered events when it's dragged with the mouse.
 #[instrument(skip_all)]
 fn handle_timeline_drag(
     trigger: On<Pointer<Drag>>,
 
-    // Traverse the relationship tree
-    children_query: Query<&Children>,
     childof_query: Query<&ChildOf>,
 
-    mut vertical_lines_query: Query<(Entity, &mut Transform), VerticalLineFilters>,
-    mut main_line_query: Query<&mut Transform, MainLineFilters>,
-    mut year_labels_query: Query<&mut Transform, YearLabelsFilters>,
+    mut vertical_lines_query: Query<(&ChildOf, &mut Transform), VerticalLinesFilter>,
+    mut main_line_query: Query<(&ChildOf, &mut Transform), MainLineFilter>,
+
+    mut to_drag_query: Query<(&DraggedBy, &mut Transform), ToDragFilter>,
 ) {
     if matches!(trigger.button, PointerButton::Primary) {
         // Since we only want to move the timeline that was dragged, the whole thing needs to traverse the relationship tree, otherwise we will edit
         // all of the timelines on screen.
         let timeline_entity = childof_query.get(trigger.entity).unwrap().parent();
 
-        let vertical_lines = vertical_lines_query
-            .iter_many_unique_mut(children_query.get(timeline_entity).unwrap().to_set());
-
-        vertical_lines.for_each(|(entity, mut pos)| {
-            pos.translation.x += trigger.delta.x;
-
-            for mut label_pos in
-                year_labels_query.iter_many_unique_mut(children_query.get(entity).unwrap().to_set())
-            {
-                label_pos.translation.y -= trigger.delta.y
-            }
-        });
+        vertical_lines_query
+            .iter_mut()
+            .filter(|(childof, _)| childof.parent() == timeline_entity)
+            .for_each(|(_, mut pos)| pos.translation.x += trigger.delta.x);
 
         main_line_query
-            .iter_many_unique_mut(children_query.get(timeline_entity).unwrap().to_set())
-            .for_each(|mut pos| pos.translation.y -= trigger.delta.y);
-    }
-}
+            .iter_mut()
+            .filter(|(childof, _)| childof.parent() == timeline_entity)
+            .for_each(|(_, mut pos)| pos.translation.y -= trigger.delta.y);
 
-trait ToEntitySet {
-    type Set: EntitySet;
-    fn to_set(self) -> Self::Set;
-}
-impl ToEntitySet for &Children {
-    type Set = EntityHashSet;
-    // NOTE: If performance for dragging becomes a concern, I can always use an unsafe impl for `UniqueEntitySlice`, if I'm willing
-    // to uphold the safety guarantees manually.
-    fn to_set(self) -> Self::Set {
-        EntityHashSet::from_iter(self.iter())
+        to_drag_query
+            .iter_mut()
+            .filter(|(dragged_by, _)| dragged_by.0 == timeline_entity)
+            .for_each(|(_, mut pos)| {
+                pos.translation.x += trigger.delta.x;
+                pos.translation.y -= trigger.delta.y;
+            });
     }
 }

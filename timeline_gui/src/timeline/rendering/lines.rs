@@ -2,6 +2,8 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::YearIterator;
 use tracing::instrument;
 
+use crate::timeline::rendering::dragging::relationship::DraggedBy;
+
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.
 #[instrument(skip_all)]
 pub fn spawn_timeline_lines(
@@ -44,19 +46,21 @@ pub fn spawn_timeline_lines(
                 + render_info.horizontal_offset
                 + timeline_size.x / 2.;
 
-            commands.entity(entity).with_child((
-                VerticalLine,
-                Mesh2d(year_line_mesh.clone()),
-                MeshMaterial2d(year_line_material.clone()),
-                pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
-                render_info.layers.clone(),
-                children![(
-                    YearLabel,
+            commands.entity(entity).with_children(|spawner| {
+                spawner.spawn((
+                    VerticalLine,
+                    Mesh2d(year_line_mesh.clone()),
+                    MeshMaterial2d(year_line_material.clone()),
+                    pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
+                    render_info.layers.clone(),
+                ));
+                spawner.spawn((
+                    DraggedBy(entity),
                     Text2d::new(year_iterator.next().unwrap().to_string()),
-                    Transform::from_xyz(0., -15., 0.),
-                    render_info.layers.clone()
-                )],
-            ));
+                    pos.with_translation(Vec3::new(year_x_pos, -15., 0.)),
+                    render_info.layers.clone(),
+                ));
+            });
         }
     }
 }
@@ -65,6 +69,3 @@ pub fn spawn_timeline_lines(
 pub struct VerticalLine;
 #[derive(Debug, Component)]
 pub struct MainLine;
-
-#[derive(Debug, Component)]
-pub struct YearLabel;
