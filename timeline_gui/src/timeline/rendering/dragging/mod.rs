@@ -1,9 +1,10 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
 use crate::timeline::rendering::{
     dragging::relationship::DraggedBy,
     lines::{MainLine, VerticalLine},
+    render_information::TimelineSize,
 };
 
 pub mod relationship;
@@ -11,22 +12,22 @@ pub mod relationship;
 #[instrument(skip_all)]
 pub fn spawn_dragging_background(
     mut commands: Commands,
-    render_info_query: Query<(&super::TimelineRenderInformation, &Transform)>,
-    mut added_render_infos: MessageReader<super::TimelineRenderInformationCreatedMessage>,
+    render_info_query: Query<(Option<&TimelineSize>, &Transform, &RenderLayers)>,
+    mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
     window: Single<&Window, With<PrimaryWindow>>,
 ) {
     for msg in added_render_infos.read() {
         let entity = msg.entity();
         trace!("Spawning dragging background for timeline {entity}");
-        let (render_info, pos) = render_info_query
+        let (size, pos, render_layers) = render_info_query
             .get(entity)
             .expect("Message should refer to an entity with proper components");
-        let timeline_size = render_info.size.unwrap_or(window.size());
+        let render_size = size.map_or(window.size(), |s| **s);
 
         let background_entity = commands
             .spawn((
                 Sprite {
-                    custom_size: Some(timeline_size),
+                    custom_size: Some(render_size),
                     color: if cfg!(feature = "debug") {
                         Color::srgba(0.5, 0., 0., 0.5)
                     } else {
@@ -36,7 +37,7 @@ pub fn spawn_dragging_background(
                 },
                 pos.with_translation(Vec3::new(0., 0., -100.)),
                 Pickable::default(),
-                render_info.layers.clone(),
+                render_layers.clone(),
             ))
             .observe(handle_timeline_drag)
             .id();
