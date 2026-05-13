@@ -10,4 +10,5 @@ tracing = "0.1.44"
 
 [features]
 debug = ["bevy/debug", "bevy/dynamic_linking"]
+profiling = ["bevy/trace", "bevy/debug", "bevy/trace_tracy"]
 default = ["debug"]
