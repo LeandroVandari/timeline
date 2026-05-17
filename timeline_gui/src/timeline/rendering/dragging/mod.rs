@@ -2,9 +2,9 @@ use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
 use crate::timeline::rendering::{
+    configuration::TimelineSize,
     dragging::relationship::DraggedBy,
     lines::{MainLine, VerticalLine},
-    render_information::TimelineSize,
 };
 
 pub mod relationship;

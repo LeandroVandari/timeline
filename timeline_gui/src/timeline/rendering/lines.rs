@@ -3,10 +3,10 @@ use timeline_core::date_iteration::YearIterator;
 use tracing::instrument;
 
 use crate::timeline::rendering::{
-    dragging::relationship::DraggedBy,
-    render_information::{
+    configuration::{
         TimelineHorizontalOffset, TimelineLineSeparation, TimelineSize, TimelineStartYear,
     },
+    dragging::relationship::DraggedBy,
 };
 
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.

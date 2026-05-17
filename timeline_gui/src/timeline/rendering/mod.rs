@@ -4,12 +4,12 @@ use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::setup::MainCamera;
-pub use render_information::RenderedTimeline;
-use render_information::RenderedTimelineCreatedMessage;
+pub use configuration::RenderedTimeline;
+use configuration::RenderedTimelineCreatedMessage;
 
+mod configuration;
 mod dragging;
 mod lines;
-mod render_information;
 
 pub struct TimelineRendererPlugin;
 
@@ -55,7 +55,7 @@ impl TimelineRendererPlugin {
         window: Single<&Window, With<PrimaryWindow>>,
 
         timeline_info_query: Query<(
-            Option<&render_information::TimelineSize>,
+            Option<&configuration::TimelineSize>,
             &Transform,
             &RenderLayers,
         )>,
