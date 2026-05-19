@@ -4,7 +4,8 @@ use tracing::instrument;
 
 use crate::timeline::rendering::{
     configuration::{
-        TimelineHorizontalOffset, TimelineLineSeparation, TimelineSize, TimelineStartYear,
+        TimelineHorizontalOffset, TimelineHorizontalRenderMargin, TimelineLineSeparation,
+        TimelineSize, TimelineStartYear,
     },
     dragging::relationship::DraggedBy,
 };
@@ -29,15 +30,23 @@ pub fn spawn_timeline_lines(
         &TimelineLineSeparation,
         &TimelineStartYear,
         &TimelineHorizontalOffset,
+        &TimelineHorizontalRenderMargin,
     )>,
     mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
 ) {
     for msg in added_render_infos.read() {
         let entity = msg.entity();
-        let (size, pos, render_layers, &line_separation, start_year, &horizontal_offset) =
-            render_info_query
-                .get(entity)
-                .expect("Message should refer to an entity with proper components.");
+        let (
+            size,
+            pos,
+            render_layers,
+            &line_separation,
+            start_year,
+            &horizontal_offset,
+            &horizontal_render_margin,
+        ) = render_info_query
+            .get(entity)
+            .expect("Message should refer to an entity with proper components.");
         trace!("Spawning lines for timeline {entity}");
         let render_size = size.map_or(window.size(), |s| **s);
 
@@ -54,14 +63,11 @@ pub fn spawn_timeline_lines(
         let year_line_mesh = meshes.add(Rectangle::new(1., render_size.y));
         let year_line_material = materials.add(Color::srgb(0.8, 0.8, 0.8));
 
-        let mut num_lines = (render_size.x / *line_separation).ceil() as u32;
-        num_lines += 2 - num_lines % 2;
+        let draw_width = render_size.x * (1. + *horizontal_render_margin);
+        let num_lines = (draw_width / *line_separation).ceil() as u32;
         let mut year_iterator = YearIterator::new(start_year).unwrap();
         for i in 0..num_lines {
-            let year_x_pos = -(num_lines as f32 * *line_separation)
-                + *line_separation * i as f32
-                + *horizontal_offset
-                + render_size.x / 2.;
+            let year_x_pos = -draw_width / 2. + *line_separation * i as f32 + *horizontal_offset;
 
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((

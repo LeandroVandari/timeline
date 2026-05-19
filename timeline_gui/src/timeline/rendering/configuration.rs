@@ -20,9 +20,10 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     Transform,
     Timeline,
     InheritedVisibility,
-    TimelineHorizontalOffset,
-    TimelineStartYear,
-    TimelineLineSeparation,
+    TimelineHorizontalOffset(0.),
+    TimelineStartYear(Year::current().unwrap()),
+    TimelineLineSeparation(100.),
+    TimelineHorizontalRenderMargin(0.5),
     RenderLayers = next_render_layer()
 )]
 pub struct RenderedTimeline;
@@ -44,7 +45,7 @@ fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
 /// This is used to track e.g. when vertical year lines and year labels can be reutilized to wrap around and move to the other end of the timeline.
 ///
 /// As an initial setting, this is useful so the timeline doesn't look unnatural with the leftmost line hugging the screen edge.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineHorizontalOffset(pub f32);
 
@@ -54,30 +55,22 @@ pub struct TimelineHorizontalOffset(pub f32);
 pub struct TimelineStartYear(pub Year);
 
 /// Setting for a [`RenderedTimeline`] that indicates how spaced apart the vertical lines should be.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineLineSeparation(pub f32);
 
 /// How much space the [`RenderedTimeline`] should occupy. If not present, renderer will default to window size.
 #[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+// We can require because it doesn't cause a cycle since TimelineSize is optional.
 #[require(RenderedTimeline)]
 pub struct TimelineSize(pub Vec2);
 
-impl Default for TimelineHorizontalOffset {
-    fn default() -> Self {
-        Self(50.)
-    }
-}
-impl Default for TimelineStartYear {
-    fn default() -> Self {
-        Self(Year::current().unwrap())
-    }
-}
-impl Default for TimelineLineSeparation {
-    fn default() -> Self {
-        Self(100.)
-    }
-}
+/// How much extra invisible space the [`RenderedTimeline`] should render beyond the visible area, in percent.
+///
+/// This is needed so that things that have a width don't just pop into existence half way into the screen when their coordinate gets into the visible area.
+#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+#[component(on_add=add_rendered_timeline)]
+pub struct TimelineHorizontalRenderMargin(pub f32);
 
 #[derive(Debug, Message)]
 pub struct RenderedTimelineCreatedMessage(Entity);
