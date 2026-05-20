@@ -7,7 +7,7 @@ use crate::timeline::rendering::{
         TimelineHorizontalOffset, TimelineHorizontalRenderMargin, TimelineLineSeparation,
         TimelineSize, TimelineStartYear,
     },
-    dragging::relationship::DraggedBy,
+    dragging::relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
 };
 
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.
@@ -52,7 +52,7 @@ pub fn spawn_timeline_lines(
 
         // Main, horizontal line
         commands.entity(entity).with_child((
-            MainLine,
+            VerticallyDraggedBy(entity),
             Mesh2d(meshes.add(Rectangle::new(render_size.x, 3.))),
             MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
             pos.with_translation(Vec3::ZERO),
@@ -71,14 +71,14 @@ pub fn spawn_timeline_lines(
 
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((
-                    VerticalLine,
+                    HorizontallyDraggedBy(entity),
                     Mesh2d(year_line_mesh.clone()),
                     MeshMaterial2d(year_line_material.clone()),
                     pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
                     render_layers.clone(),
                 ));
                 spawner.spawn((
-                    DraggedBy(entity),
+                    DraggedBy::new(entity),
                     Text2d::new(year_iterator.next().unwrap().to_string()),
                     pos.with_translation(Vec3::new(year_x_pos, -15., 0.)),
                     render_layers.clone(),
@@ -87,8 +87,3 @@ pub fn spawn_timeline_lines(
         }
     }
 }
-
-#[derive(Debug, Component)]
-pub struct VerticalLine;
-#[derive(Debug, Component)]
-pub struct MainLine;

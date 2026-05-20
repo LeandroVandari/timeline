@@ -1,88 +1,78 @@
-use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
+use bevy::{ecs::entity::EntityHashSet, prelude::*};
 use tracing::instrument;
 
-use crate::timeline::rendering::{
-    configuration::TimelineSize,
-    dragging::relationship::DraggedBy,
-    lines::{MainLine, VerticalLine},
+use crate::timeline::rendering::dragging::relationship::{
+    HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
 
 pub mod relationship;
 
-#[instrument(skip_all)]
-pub fn spawn_dragging_background(
-    mut commands: Commands,
-    render_info_query: Query<(Option<&TimelineSize>, &Transform, &RenderLayers)>,
-    mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
-    window: Single<&Window, With<PrimaryWindow>>,
-) {
-    for msg in added_render_infos.read() {
-        let entity = msg.entity();
-        trace!("Spawning dragging background for timeline {entity}");
-        let (size, pos, render_layers) = render_info_query
-            .get(entity)
-            .expect("Message should refer to an entity with proper components");
-        let render_size = size.map_or(window.size(), |s| **s);
+pub struct DraggingPlugin;
 
-        let background_entity = commands
-            .spawn((
-                Sprite {
-                    custom_size: Some(render_size),
-                    color: if cfg!(feature = "debug") {
-                        Color::srgba(0.5, 0., 0., 0.5)
-                    } else {
-                        Color::NONE
-                    },
-                    ..Default::default()
-                },
-                pos.with_translation(Vec3::new(0., 0., -100.)),
-                Pickable::default(),
-                render_layers.clone(),
-            ))
-            .observe(handle_timeline_drag)
-            .id();
-
-        commands.entity(entity).add_child(background_entity);
+impl Plugin for DraggingPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, Self::handle_drag.run_if(on_message::<DragMessage>))
+            .add_message::<DragMessage>();
     }
 }
 
-type VerticalLinesFilter = (With<VerticalLine>, Without<MainLine>, Without<DraggedBy>);
-type MainLineFilter = (With<MainLine>, Without<VerticalLine>, Without<DraggedBy>);
-type ToDragFilter = (Without<MainLine>, Without<VerticalLine>);
+impl DraggingPlugin {
+    #[expect(clippy::type_complexity, reason = "Bevy Queries are 'complex types'")]
+    #[instrument(skip_all)]
+    fn handle_drag(
+        mut drag_messages: MessageReader<DragMessage>,
 
-/// Handle translation of the timeline's labels/lines/rendered events when it's dragged with the mouse.
-#[instrument(skip_all)]
-fn handle_timeline_drag(
-    trigger: On<Pointer<Drag>>,
+        mut drag_query: Query<
+            &mut Transform,
+            Or<(With<VerticallyDraggedBy>, With<HorizontallyDraggedBy>)>,
+        >,
 
-    childof_query: Query<&ChildOf>,
+        vertically_drags_query: Query<&VerticallyDrags>,
+        horizontally_drags_query: Query<&HorizontallyDrags>,
+    ) {
+        for &DragMessage {
+            dragged_entity,
+            delta,
+        } in drag_messages.read()
+        {
+            match vertically_drags_query.get(dragged_entity) {
+                Ok(dragged) => {
+                    drag_query
+                        .iter_many_unique_mut(EntityHashSet::from_iter(
+                            dragged.collection().iter().copied(),
+                        ))
+                        .for_each(|mut pos| pos.translation.y -= delta.y);
+                }
+                Err(bevy::ecs::query::QueryEntityError::QueryDoesNotMatch(_, _)) => (),
+                Err(e) => error!("Error running drag query: {e}"),
+            }
 
-    mut vertical_lines_query: Query<(&ChildOf, &mut Transform), VerticalLinesFilter>,
-    mut main_line_query: Query<(&ChildOf, &mut Transform), MainLineFilter>,
+            match horizontally_drags_query.get(dragged_entity) {
+                Ok(dragged) => {
+                    drag_query
+                        .iter_many_unique_mut(EntityHashSet::from_iter(
+                            dragged.collection().iter().copied(),
+                        ))
+                        .for_each(|mut pos| pos.translation.x += delta.x);
+                }
+                Err(bevy::ecs::query::QueryEntityError::QueryDoesNotMatch(_, _)) => (),
+                Err(e) => error!("Error running drag query: {e}"),
+            }
+        }
+    }
+}
 
-    mut to_drag_query: Query<(&DraggedBy, &mut Transform), ToDragFilter>,
-) {
-    if matches!(trigger.button, PointerButton::Primary) {
-        // Since we only want to move the timeline that was dragged, the whole thing needs to traverse the relationship tree, otherwise we will edit
-        // all of the timelines on screen.
-        let timeline_entity = childof_query.get(trigger.entity).unwrap().parent();
+#[derive(Message)]
+pub struct DragMessage {
+    dragged_entity: Entity,
+    delta: Vec2,
+}
 
-        vertical_lines_query
-            .iter_mut()
-            .filter(|(childof, _)| childof.parent() == timeline_entity)
-            .for_each(|(_, mut pos)| pos.translation.x += trigger.delta.x);
-
-        main_line_query
-            .iter_mut()
-            .filter(|(childof, _)| childof.parent() == timeline_entity)
-            .for_each(|(_, mut pos)| pos.translation.y -= trigger.delta.y);
-
-        to_drag_query
-            .iter_mut()
-            .filter(|(dragged_by, _)| dragged_by.0 == timeline_entity)
-            .for_each(|(_, mut pos)| {
-                pos.translation.x += trigger.delta.x;
-                pos.translation.y -= trigger.delta.y;
-            });
+impl DragMessage {
+    pub fn new(dragged_entity: Entity, delta: Vec2) -> Self {
+        Self {
+            dragged_entity,
+            delta,
+        }
     }
 }

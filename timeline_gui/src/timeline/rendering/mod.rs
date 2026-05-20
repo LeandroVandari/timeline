@@ -4,13 +4,14 @@ use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::setup::MainCamera;
+use crate::timeline::rendering::dragging::DraggingPlugin;
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
+mod background;
 mod configuration;
 mod dragging;
 mod lines;
-
 pub struct TimelineRendererPlugin;
 
 impl Plugin for TimelineRendererPlugin {
@@ -20,7 +21,7 @@ impl Plugin for TimelineRendererPlugin {
             (
                 Self::spawn_timeline_camera,
                 lines::spawn_timeline_lines,
-                dragging::spawn_dragging_background,
+                background::spawn_timeline_background,
             )
                 .run_if(on_message::<RenderedTimelineCreatedMessage>),
         )
@@ -35,7 +36,8 @@ impl Plugin for TimelineRendererPlugin {
                 writer.write(RenderedTimelineCreatedMessage::from_trigger(trigger));
             },
         )
-        .add_message::<RenderedTimelineCreatedMessage>();
+        .add_message::<RenderedTimelineCreatedMessage>()
+        .add_plugins(DraggingPlugin);
     }
 }
 
