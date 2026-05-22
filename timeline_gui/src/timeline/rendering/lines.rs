@@ -4,8 +4,7 @@ use tracing::instrument;
 
 use crate::timeline::rendering::{
     configuration::{
-        TimelineHorizontalOffset, TimelineHorizontalRenderMargin, TimelineLineSeparation,
-        TimelineSize, TimelineStartYear,
+        TimelineHorizontalRenderMargin, TimelineLineSeparation, TimelineSize, TimelineStartYear,
     },
     dragging::{
         HorizontalWrapAround,
@@ -32,24 +31,16 @@ pub fn spawn_timeline_lines(
         &RenderLayers,
         &TimelineLineSeparation,
         &TimelineStartYear,
-        &TimelineHorizontalOffset,
         &TimelineHorizontalRenderMargin,
     )>,
     mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
 ) {
     for msg in added_render_infos.read() {
         let entity = msg.entity();
-        let (
-            size,
-            pos,
-            render_layers,
-            &line_separation,
-            start_year,
-            &horizontal_offset,
-            &horizontal_render_margin,
-        ) = render_info_query
-            .get(entity)
-            .expect("Message should refer to an entity with proper components.");
+        let (size, pos, render_layers, &line_separation, start_year, &horizontal_render_margin) =
+            render_info_query
+                .get(entity)
+                .expect("Message should refer to an entity with proper components.");
         trace!("Spawning lines for timeline {entity}");
         let render_size = size.map_or(window.size(), |s| **s);
 
@@ -73,7 +64,7 @@ pub fn spawn_timeline_lines(
 
         let mut year_iterator = YearIterator::new(start_year).unwrap();
         for i in 0..num_lines {
-            let year_x_pos = -draw_width / 2. + *line_separation * i as f32 + *horizontal_offset;
+            let year_x_pos = -draw_width / 2. + *line_separation * i as f32;
 
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((

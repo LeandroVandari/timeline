@@ -20,7 +20,6 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     Transform,
     Timeline,
     InheritedVisibility,
-    TimelineHorizontalOffset(0.),
     TimelineStartYear(Year::current().unwrap()),
     TimelineLineSeparation(100.),
     TimelineHorizontalRenderMargin(0.5),
@@ -39,15 +38,6 @@ fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
         .entity(ctx.entity)
         .insert_if_new(RenderedTimeline);
 }
-
-/// Setting for a [`RenderedTimeline`] that describes how much the rendered elements should be moved horizontally.
-///
-/// This is used to track e.g. when vertical year lines and year labels can be reutilized to wrap around and move to the other end of the timeline.
-///
-/// As an initial setting, this is useful so the timeline doesn't look unnatural with the leftmost line hugging the screen edge.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
-#[component(on_add = add_rendered_timeline)]
-pub struct TimelineHorizontalOffset(pub f32);
 
 /// Setting for a [`RenderedTimeline`] that indicates the leftmost rendered year.
 #[derive(Debug, Component, Deref, DerefMut, Clone)]
