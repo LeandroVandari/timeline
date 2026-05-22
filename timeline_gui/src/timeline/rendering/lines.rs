@@ -7,7 +7,10 @@ use crate::timeline::rendering::{
         TimelineHorizontalOffset, TimelineHorizontalRenderMargin, TimelineLineSeparation,
         TimelineSize, TimelineStartYear,
     },
-    dragging::relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
+    dragging::{
+        HorizontalWrapAround,
+        relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
+    },
 };
 
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.
@@ -63,14 +66,22 @@ pub fn spawn_timeline_lines(
         let year_line_mesh = meshes.add(Rectangle::new(1., render_size.y));
         let year_line_material = materials.add(Color::srgb(0.8, 0.8, 0.8));
 
-        let draw_width = render_size.x * (1. + *horizontal_render_margin);
-        let num_lines = (draw_width / *line_separation).ceil() as u32;
+        let requested_draw_width = render_size.x * (1. + *horizontal_render_margin);
+        let num_lines = (requested_draw_width / *line_separation).ceil();
+        let draw_width = num_lines * *line_separation;
+        let num_lines = num_lines as u32;
+
         let mut year_iterator = YearIterator::new(start_year).unwrap();
         for i in 0..num_lines {
             let year_x_pos = -draw_width / 2. + *line_separation * i as f32 + *horizontal_offset;
 
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((
+                    HorizontalWrapAround {
+                        center: pos.translation.x,
+                        half_width: draw_width / 2.,
+                        emit_message: false,
+                    },
                     HorizontallyDraggedBy(entity),
                     Mesh2d(year_line_mesh.clone()),
                     MeshMaterial2d(year_line_material.clone()),
@@ -78,6 +89,11 @@ pub fn spawn_timeline_lines(
                     render_layers.clone(),
                 ));
                 spawner.spawn((
+                    HorizontalWrapAround {
+                        center: pos.translation.x,
+                        half_width: draw_width / 2.,
+                        emit_message: true,
+                    },
                     DraggedBy::new(entity),
                     Text2d::new(year_iterator.next().unwrap().to_string()),
                     pos.with_translation(Vec3::new(year_x_pos, -15., 0.)),

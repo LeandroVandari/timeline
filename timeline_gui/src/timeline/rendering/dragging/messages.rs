@@ -14,3 +14,6 @@ impl DragMessage {
         }
     }
 }
+
+#[derive(Debug, EntityEvent)]
+pub struct WrapAround(pub Entity);

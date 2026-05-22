@@ -4,7 +4,7 @@ use tracing::instrument;
 use crate::timeline::rendering::dragging::relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
-pub use messages::DragMessage;
+pub use messages::{DragMessage, WrapAround};
 
 mod messages;
 pub mod relationship;
@@ -25,12 +25,14 @@ impl DraggingPlugin {
         mut drag_messages: MessageReader<DragMessage>,
 
         mut drag_query: Query<
-            &mut Transform,
+            (&mut Transform, Option<&HorizontalWrapAround>, Entity),
             Or<(With<VerticallyDraggedBy>, With<HorizontallyDraggedBy>)>,
         >,
 
         vertically_drags_query: Query<&VerticallyDrags>,
         horizontally_drags_query: Query<&HorizontallyDrags>,
+
+        mut commands: Commands,
     ) {
         for &DragMessage {
             dragged_entity,
@@ -43,7 +45,7 @@ impl DraggingPlugin {
                         .iter_many_unique_mut(EntityHashSet::from_iter(
                             dragged.collection().iter().copied(),
                         ))
-                        .for_each(|mut pos| pos.translation.y -= delta.y);
+                        .for_each(|(mut pos, ..)| pos.translation.y -= delta.y);
                 }
                 Err(bevy::ecs::query::QueryEntityError::QueryDoesNotMatch(_, _)) => (),
                 Err(e) => error!("Error running drag query: {e}"),
@@ -55,11 +57,34 @@ impl DraggingPlugin {
                         .iter_many_unique_mut(EntityHashSet::from_iter(
                             dragged.collection().iter().copied(),
                         ))
-                        .for_each(|mut pos| pos.translation.x += delta.x);
+                        .for_each(|(mut pos, infinite_drag, entity)| {
+                            pos.translation.x += delta.x;
+                            if let Some(&HorizontalWrapAround {
+                                center,
+                                half_width,
+                                emit_message,
+                            }) = infinite_drag
+                                && (pos.translation.x - center) * delta.x.signum() > half_width
+                            {
+                                pos.translation.x += half_width * 2. * (-delta.x.signum());
+
+                                if emit_message {
+                                    commands.trigger(WrapAround(entity));
+                                }
+                            }
+                        });
                 }
                 Err(bevy::ecs::query::QueryEntityError::QueryDoesNotMatch(_, _)) => (),
                 Err(e) => error!("Error running drag query: {e}"),
             }
         }
     }
+}
+
+#[derive(Debug, Component)]
+// TODO: Generalize to vertical drag aswell.
+pub struct HorizontalWrapAround {
+    pub center: f32,
+    pub half_width: f32,
+    pub emit_message: bool,
 }
