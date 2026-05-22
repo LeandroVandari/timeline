@@ -16,4 +16,13 @@ impl DragMessage {
 }
 
 #[derive(Debug, EntityEvent)]
-pub struct WrapAround(pub Entity);
+pub struct WrapAround {
+    pub entity: Entity,
+    pub direction: WrapDirection,
+}
+
+#[derive(Debug)]
+pub enum WrapDirection {
+    Left,
+    Right,
+}

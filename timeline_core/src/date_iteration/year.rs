@@ -20,12 +20,12 @@ impl Year {
         self.0
     }
 
-    fn get_next(&self) -> TemporalResult<Self> {
+    pub fn get_next(&self) -> TemporalResult<Self> {
         let mut temp_iter = YearIterator::new(self)?;
         temp_iter.nth(1).ok_or(TemporalError::abrupt_end())
     }
 
-    fn get_previous(&self) -> TemporalResult<Self> {
+    pub fn get_previous(&self) -> TemporalResult<Self> {
         let mut temp_iter = YearIterator::new(self)?;
         temp_iter.nth_back(1).ok_or(TemporalError::abrupt_end())
     }

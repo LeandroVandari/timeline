@@ -4,7 +4,7 @@ use tracing::instrument;
 use crate::timeline::rendering::dragging::relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
-pub use messages::{DragMessage, WrapAround};
+pub use messages::{DragMessage, WrapAround, WrapDirection};
 
 mod messages;
 pub mod relationship;
@@ -69,7 +69,14 @@ impl DraggingPlugin {
                                 pos.translation.x += half_width * 2. * (-delta.x.signum());
 
                                 if emit_message {
-                                    commands.trigger(WrapAround(entity));
+                                    commands.trigger(WrapAround {
+                                        entity,
+                                        direction: if delta.x > 0. {
+                                            WrapDirection::Right
+                                        } else {
+                                            WrapDirection::Left
+                                        },
+                                    });
                                 }
                             }
                         });

@@ -1,5 +1,5 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
-use timeline_core::date_iteration::YearIterator;
+use timeline_core::date_iteration::{YearIterator, year::Year};
 use tracing::instrument;
 
 use crate::timeline::rendering::{
@@ -7,7 +7,7 @@ use crate::timeline::rendering::{
         TimelineHorizontalRenderMargin, TimelineLineSeparation, TimelineSize, TimelineStartYear,
     },
     dragging::{
-        HorizontalWrapAround,
+        HorizontalWrapAround, WrapAround, WrapDirection,
         relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
     },
 };
@@ -66,6 +66,7 @@ pub fn spawn_timeline_lines(
         for i in 0..num_lines {
             let year_x_pos = -draw_width / 2. + *line_separation * i as f32;
 
+            let year = year_iterator.next().unwrap();
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((
                     HorizontalWrapAround {
@@ -86,11 +87,22 @@ pub fn spawn_timeline_lines(
                         emit_message: true,
                     },
                     DraggedBy::new(entity),
-                    Text2d::new(year_iterator.next().unwrap().to_string()),
+                    Text2d::new(year.to_string()),
+                    YearLabel(year),
                     pos.with_translation(Vec3::new(year_x_pos, -15., 0.)),
                     render_layers.clone(),
-                ));
+                )).observe(|trigger: On<WrapAround>, mut label_query: Query<(&mut YearLabel, &mut Text2d)>| {
+                    let (mut year, mut text_label) = label_query.get_mut(trigger.entity).unwrap();
+                    match trigger.direction {
+                        WrapDirection::Left => year.0 = year.0.get_next().unwrap(),
+                        WrapDirection::Right => year.0 = year.0.get_previous().unwrap()
+                    };
+                    text_label.0 = year.0.to_string()
+                });
             });
         }
     }
 }
+
+#[derive(Debug, Component)]
+struct YearLabel(pub Year);
