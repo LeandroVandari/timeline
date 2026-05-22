@@ -4,7 +4,9 @@ use tracing::instrument;
 use crate::timeline::rendering::dragging::relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
+pub use messages::DragMessage;
 
+mod messages;
 pub mod relationship;
 
 pub struct DraggingPlugin;
@@ -58,21 +60,6 @@ impl DraggingPlugin {
                 Err(bevy::ecs::query::QueryEntityError::QueryDoesNotMatch(_, _)) => (),
                 Err(e) => error!("Error running drag query: {e}"),
             }
-        }
-    }
-}
-
-#[derive(Message)]
-pub struct DragMessage {
-    dragged_entity: Entity,
-    delta: Vec2,
-}
-
-impl DragMessage {
-    pub fn new(dragged_entity: Entity, delta: Vec2) -> Self {
-        Self {
-            dragged_entity,
-            delta,
         }
     }
 }
