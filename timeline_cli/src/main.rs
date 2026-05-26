@@ -1,7 +1,7 @@
-use std::{collections::HashSet, io::Write, path::PathBuf};
+use std::{collections::HashSet, io::Write as _, path::PathBuf};
 
 use anyhow::{Result, anyhow};
-use clap::Parser;
+use clap::Parser as _;
 use temporal_rs::{PlainDate, PlainDateTime, UtcOffset, ZonedDateTime};
 use timeline_core::{TimelineManager, event::EventData, when::When};
 
@@ -31,7 +31,6 @@ fn respond(line: &str, manager: &mut TimelineManager) -> Result<bool> {
     let args = shlex::split(line).ok_or(anyhow!("error: Invalid quoting"))?;
 
     let cli = Cli::try_parse_from(args)?;
-    dbg!(&cli);
     match cli.command {
         Commands::Show => {
             for event in manager.ordered_events() {

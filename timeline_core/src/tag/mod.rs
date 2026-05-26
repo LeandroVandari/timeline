@@ -9,12 +9,17 @@ new_key_type! {
     pub struct TagId;
 }
 
+#[expect(
+    clippy::module_name_repetitions,
+    reason = "TagData should be `use`d and would be too generic if it didn't specify what the data refers to."
+)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TagData {
     associated_events: HashSet<EventId>,
     name: String,
 }
 impl TagData {
+    #[must_use]
     pub fn new(name: String) -> Self {
         Self {
             associated_events: HashSet::new(),
@@ -30,10 +35,12 @@ impl TagData {
         self.associated_events.remove(&id)
     }
 
+    #[must_use]
     pub fn associated_events(&self) -> &HashSet<EventId> {
         &self.associated_events
     }
 
+    #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }

@@ -42,7 +42,7 @@ impl Plugin for TimelineRendererPlugin {
 }
 
 impl TimelineRendererPlugin {
-    /// Creates a new camera to render the timeline whose [`TimelineRenderInformation`] was just spawned.
+    /// Creates a new camera to render the timeline whose [`RenderedTimeline`] was just spawned.
     ///
     /// We need to make sure only the proper area from the timeline is drawn by creating a custom camera just to render it whose viewport spans exactly
     /// the size of the timeline.
@@ -81,6 +81,7 @@ impl TimelineRendererPlugin {
                 Camera2d,
                 render_layers.clone(),
                 Camera {
+                    // TODO: rework figured out ordering
                     order: entity.index_u32() as isize,
                     viewport: Some(Viewport {
                         physical_position: (main_camera

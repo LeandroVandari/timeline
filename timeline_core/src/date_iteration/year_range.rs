@@ -1,6 +1,6 @@
 use temporal_rs::{Calendar, options::DifferenceSettings};
 
-use crate::date_iteration::year::Year;
+use crate::date_iteration::{YearIterator, year::Year};
 
 #[derive(Debug, Clone)]
 pub struct YearRange {
@@ -9,9 +9,15 @@ pub struct YearRange {
 }
 
 impl YearRange {
+    #[must_use]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "won't truncate on 32 bit targets because it's always positive"
+    )]
     pub fn len(&self) -> usize {
         let mut settings = DifferenceSettings::default();
         settings.smallest_unit = Some(temporal_rs::options::Unit::Year);
+
         temporal_rs::PlainDate::new(self.end.inner(), 1, 1, Calendar::ISO)
             .unwrap()
             .since(
@@ -19,6 +25,18 @@ impl YearRange {
                 settings,
             )
             .unwrap()
-            .years() as usize
+            .years()
+            .max(0)
+            .cast_unsigned() as usize
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.end <= self.start
+    }
+
+    #[must_use]
+    pub fn iter(&self) -> YearIterator {
+        self.into_iter()
     }
 }

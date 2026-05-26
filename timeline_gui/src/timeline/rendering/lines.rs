@@ -12,6 +12,10 @@ use crate::timeline::rendering::{
 
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.
 #[instrument(skip_all)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
+)]
 pub fn spawn_timeline_lines(
     mut commands: Commands,
     window: Single<&Window, With<PrimaryWindow>>,
@@ -52,7 +56,7 @@ pub fn spawn_timeline_lines(
         let year_iterator = render_range.0.into_iter();
         let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
         for (i, year) in year_iterator.enumerate() {
-            let year_x_pos = -draw_width / 2. + *line_separation * i as f32;
+            let year_x_pos = line_separation.mul_add(i as f32, -draw_width / 2.);
 
             commands.entity(entity).with_children(|spawner| {
                 spawner.spawn((
@@ -90,13 +94,13 @@ pub fn spawn_timeline_lines(
                             match trigger.direction {
                                 WrapDirection::Left => {
                                     range.inc();
-                                    year.0 = range.0.end.clone()},
+                                    year.0 = range.0.end.clone();},
                                 WrapDirection::Right => {
                                     range.dec();
-                                    year.0 = range.0.start.clone()
+                                    year.0 = range.0.start.clone();
                                 }
-                            };
-                            text_label.0 = year.0.to_string()
+                            }
+                            text_label.0 = year.0.to_string();
                         },
                     );
             });

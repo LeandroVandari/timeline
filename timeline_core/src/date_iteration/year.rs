@@ -1,4 +1,4 @@
-use std::{
+use core::{
     fmt::Display,
     ops::{Add, Sub},
 };
@@ -17,6 +17,7 @@ impl Year {
         ))
     }
 
+    #[must_use]
     pub fn inner(&self) -> i32 {
         self.0
     }
@@ -31,7 +32,8 @@ impl Year {
         temp_iter.nth_back(1).ok_or(TemporalError::abrupt_end())
     }
 
-    fn months(&self) -> MonthIterator {
+    #[must_use]
+    pub fn months(&self) -> MonthIterator {
         self.clone().into()
     }
 }
@@ -77,7 +79,7 @@ impl From<PlainDate> for Year {
 }
 
 impl Display for Year {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
     }
 }

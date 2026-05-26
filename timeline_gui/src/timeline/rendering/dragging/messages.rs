@@ -2,16 +2,27 @@ use bevy::prelude::*;
 
 #[derive(Debug, Message)]
 pub struct DragMessage {
-    pub(super) dragged_entity: Entity,
-    pub(super) delta: Vec2,
+    dragged_entity: Entity,
+    delta: Vec2,
 }
 
 impl DragMessage {
+    #[must_use]
     pub fn new(dragged_entity: Entity, delta: Vec2) -> Self {
         Self {
             dragged_entity,
             delta,
         }
+    }
+
+    #[must_use]
+    pub fn entity(&self) -> Entity {
+        self.dragged_entity
+    }
+
+    #[must_use]
+    pub fn delta(&self) -> Vec2 {
+        self.delta
     }
 }
 

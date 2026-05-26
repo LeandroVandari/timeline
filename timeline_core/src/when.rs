@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt::Display};
+use core::{cmp::Ordering, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
@@ -24,7 +24,7 @@ impl PartialOrd for When {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match self {
             Self::Instant(a) => match other {
-                When::Period { start, end } => {
+                Self::Period { start, end } => {
                     if matches!(a.compare_instant(start), Ordering::Less) {
                         return Some(Ordering::Less);
                     } else if matches!(a.compare_instant(end), Ordering::Greater) {
@@ -32,7 +32,7 @@ impl PartialOrd for When {
                     }
                     None
                 }
-                When::Instant(b) => Some(a.compare_instant(b)),
+                Self::Instant(b) => Some(a.compare_instant(b)),
             },
 
             Self::Period { start, end } => match other {
@@ -64,16 +64,17 @@ impl PartialEq for When {
 impl Eq for When {}
 
 impl Display for When {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            When::Instant(t) => write!(f, "{t}"),
-            When::Period { start, end } => write!(f, "{start} - {end}"),
+            Self::Instant(t) => write!(f, "{t}"),
+            Self::Period { start, end } => write!(f, "{start} - {end}"),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::print_stdout, reason = "test")]
     use temporal_rs::{Calendar, UtcOffset};
 
     use super::*;

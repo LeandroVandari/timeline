@@ -2,6 +2,7 @@
 name = "timeline_gui"
 version = "0.1.0"
 edition = "2024"
+license-file.workspace = true
 
 [dependencies]
 bevy = { version = "0.18.1", default-features = false, features = ["2d"] }
@@ -12,3 +13,6 @@ tracing = "0.1.44"
 debug = ["bevy/debug", "bevy/dynamic_linking"]
 profiling = ["bevy/trace", "bevy/debug", "bevy/trace_tracy"]
 default = ["debug"]
+
+[lints]
+workspace = true

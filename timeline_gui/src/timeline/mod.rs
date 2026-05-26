@@ -6,7 +6,7 @@ pub use rendering::RenderedTimeline;
 
 #[derive(Debug, Component, Default)]
 /// A historical timeline to be held by the Bevy ECS.
-/// Will not be rendered unless its entity cotains [`TimelineRenderInformation`](render_information::TimelineRenderInformation).
+/// Will not be rendered unless its entity contains [`RenderedTimeline`].
 pub struct Timeline {
     pub manager: TimelineManager,
 }

@@ -1,4 +1,4 @@
-use std::sync::atomic::AtomicUsize;
+use core::sync::atomic::AtomicUsize;
 
 use bevy::{
     camera::visibility::RenderLayers,
@@ -14,7 +14,7 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
 
 /// Component that indicates a [`Timeline`] should be rendered to the screen.
 ///
-/// Possible configuration values are available in [timeline::rendering::configuration](crate::timeline::rendering::configuration).
+/// Possible configuration values are available in [`timeline::rendering::configuration`](crate::timeline::rendering::configuration).
 #[derive(Debug, Component, Default)]
 #[require(
     Transform,
@@ -27,7 +27,7 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
 pub struct RenderedTimeline;
 
 fn next_render_layer() -> RenderLayers {
-    RenderLayers::layer(TIMELINE_RENDER_LAYER.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+    RenderLayers::layer(TIMELINE_RENDER_LAYER.fetch_add(1, core::sync::atomic::Ordering::Relaxed))
 }
 
 #[instrument(skip_all)]
@@ -58,8 +58,13 @@ pub struct TimelineScreenSize(pub Vec2);
 pub struct TimelineRenderRange(pub YearRange);
 
 impl TimelineLineSeparation {
+    #[allow(clippy::allow_attributes)]
     #[allow(unused)]
     pub fn from_range_and_width(range: &TimelineRenderRange, width: f32) -> Self {
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "Losing precision is fine, we just want the distance to be as close as possible"
+        )]
         Self(width / (range.0.len() - 1) as f32)
     }
 }

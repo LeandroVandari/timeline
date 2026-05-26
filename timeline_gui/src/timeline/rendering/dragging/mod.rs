@@ -34,11 +34,10 @@ impl DraggingPlugin {
 
         mut commands: Commands,
     ) {
-        for &DragMessage {
-            dragged_entity,
-            delta,
-        } in drag_messages.read()
-        {
+        for drag_message in drag_messages.read() {
+            let dragged_entity = drag_message.entity();
+            let delta = drag_message.delta();
+
             match vertically_drags_query.get(dragged_entity) {
                 Ok(dragged) => {
                     drag_query
@@ -66,7 +65,9 @@ impl DraggingPlugin {
                             }) = infinite_drag
                                 && (pos.translation.x - center) * delta.x.signum() > half_width
                             {
-                                pos.translation.x += half_width * 2. * (-delta.x.signum());
+                                // Wrap it around by adding or subtracting a width
+                                pos.translation.x =
+                                    (half_width * 2.).mul_add(-delta.x.signum(), pos.translation.x);
 
                                 if emit_message {
                                     commands.trigger(WrapAround {

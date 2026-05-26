@@ -3,7 +3,7 @@ use temporal_rs::{Calendar, TemporalResult};
 
 use crate::date_iteration::YearRange;
 
-use super::year::{ToYear, Year};
+use super::year::{ToYear as _, Year};
 
 #[derive(Debug)]
 pub struct YearIterator {
@@ -31,7 +31,7 @@ impl Iterator for YearIterator {
     type Item = Year;
     fn next(&mut self) -> Option<Self::Item> {
         let year = self.curr.to_year();
-        if self.end.as_ref().map(|e| &year > e).unwrap_or(false) {
+        if self.end.as_ref().is_some_and(|end| &year > end) {
             return None;
         }
 

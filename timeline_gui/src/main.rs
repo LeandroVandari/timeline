@@ -1,3 +1,5 @@
+#![expect(clippy::needless_pass_by_value, reason = "Bevy Queries")]
+
 use bevy::{prelude::*, winit::WinitSettings};
 
 use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};

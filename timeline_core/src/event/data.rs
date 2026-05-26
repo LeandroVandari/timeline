@@ -24,7 +24,7 @@ impl EventData {
 
     #[must_use]
     pub fn new(when: When, name: String, tags: HashSet<TagId>) -> Self {
-        EventData { when, name, tags }
+        Self { when, name, tags }
     }
 
     #[must_use]
