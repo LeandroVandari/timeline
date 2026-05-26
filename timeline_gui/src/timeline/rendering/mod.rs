@@ -1,15 +1,17 @@
 use bevy::camera::Viewport;
+use bevy::camera::visibility::RenderLayers;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::setup::MainCamera;
-pub use render_information::TimelineRenderInformation;
-use render_information::TimelineRenderInformationCreatedMessage;
+use crate::timeline::rendering::dragging::DraggingPlugin;
+pub use configuration::RenderedTimeline;
+use configuration::RenderedTimelineCreatedMessage;
 
+mod background;
+mod configuration;
 mod dragging;
 mod lines;
-mod render_information;
-
 pub struct TimelineRendererPlugin;
 
 impl Plugin for TimelineRendererPlugin {
@@ -19,32 +21,23 @@ impl Plugin for TimelineRendererPlugin {
             (
                 Self::spawn_timeline_camera,
                 lines::spawn_timeline_lines,
-                dragging::spawn_dragging_background,
+                background::spawn_timeline_background,
             )
-                .run_if(on_message::<TimelineRenderInformationCreatedMessage>),
+                .run_if(on_message::<RenderedTimelineCreatedMessage>),
         )
         .add_observer(
-            |trigger: On<Add, TimelineRenderInformation>,
-             mut commands: Commands,
-             mut writer: MessageWriter<TimelineRenderInformationCreatedMessage>,
-             info_query: Query<&TimelineRenderInformation>| {
-                let render_info = info_query
-                    .get(trigger.entity)
-                    .expect("The entity just had the component added to it.");
+            |trigger: On<Add, RenderedTimeline>,
+             mut writer: MessageWriter<RenderedTimelineCreatedMessage>| {
                 info!(
-                    "Spawning rendering components for timeline {} with render configuration {:#?}",
-                    trigger.entity, render_info
+                    "Spawning rendering components for timeline {}",
+                    trigger.entity
                 );
-                commands
-                    .entity(trigger.entity)
-                    .insert(render_info.layers.clone());
 
-                writer.write(TimelineRenderInformationCreatedMessage::from_trigger(
-                    trigger,
-                ));
+                writer.write(RenderedTimelineCreatedMessage::from_trigger(trigger));
             },
         )
-        .add_message::<TimelineRenderInformationCreatedMessage>();
+        .add_message::<RenderedTimelineCreatedMessage>()
+        .add_plugins(DraggingPlugin);
     }
 }
 
@@ -59,26 +52,34 @@ impl TimelineRendererPlugin {
     #[instrument(skip_all)]
     fn spawn_timeline_camera(
         mut commands: Commands,
+
         main_camera: Single<(&Camera, &GlobalTransform), With<MainCamera>>,
         window: Single<&Window, With<PrimaryWindow>>,
-        render_info_query: Query<(&TimelineRenderInformation, &Transform)>,
-        mut added_render_infos: MessageReader<TimelineRenderInformationCreatedMessage>,
+
+        timeline_info_query: Query<(
+            Option<&configuration::TimelineScreenSize>,
+            &Transform,
+            &RenderLayers,
+        )>,
+
+        mut added_render_infos: MessageReader<RenderedTimelineCreatedMessage>,
     ) {
         for msg in added_render_infos.read() {
             let entity = msg.entity();
-            let (render_info, pos) = render_info_query.get(entity).expect("The message is only called with an entity that has TimelineRenderInformation, and that requires Transform");
+            let (size, pos, render_layers) = timeline_info_query.get(entity).expect("The message is only called with an entity that has RenderedTimeline, and thus its required components.");
             trace!("Spawning camera for timeline {entity}");
-            let timeline_size = render_info.size.unwrap_or(window.size());
+
+            let render_size = size.map_or(window.size(), |s| **s);
 
             // The viewport position is on the top-left corner. In order to convert the pos translation (which has (0,0) at the center) to that,
             // we need to move the coords left and up, which due to Bevy's coordinate system means adding y and subtracting x.
             let viewport_pos = pos
                 .translation
-                .with_x(pos.translation.x - timeline_size.x / 2.)
-                .with_y(pos.translation.y + timeline_size.y / 2.);
+                .with_x(pos.translation.x - render_size.x / 2.)
+                .with_y(pos.translation.y + render_size.y / 2.);
             commands.entity(entity).with_child((
                 Camera2d,
-                render_info.layers.clone(),
+                render_layers.clone(),
                 Camera {
                     order: entity.index_u32() as isize,
                     viewport: Some(Viewport {
@@ -88,7 +89,7 @@ impl TimelineRendererPlugin {
                             .unwrap()
                             * window.scale_factor())
                         .as_uvec2(),
-                        physical_size: (timeline_size * window.scale_factor()).as_uvec2(),
+                        physical_size: (render_size * window.scale_factor()).as_uvec2(),
                         ..Default::default()
                     }),
                     ..Default::default()

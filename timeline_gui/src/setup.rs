@@ -1,7 +1,7 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::TimelineManager;
 
-use crate::timeline::{Timeline, rendering::TimelineRenderInformation};
+use crate::timeline::{RenderedTimeline, Timeline};
 
 pub struct SetupPlugin;
 
@@ -21,7 +21,7 @@ impl SetupPlugin {
             Timeline {
                 manager: TimelineManager::new(),
             },
-            TimelineRenderInformation::default(),
+            RenderedTimeline,
             Transform::from_translation(Vec3::splat(0.)),
         ));
     }
