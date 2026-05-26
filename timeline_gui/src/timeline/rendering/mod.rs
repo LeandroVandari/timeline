@@ -9,7 +9,7 @@ pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
 mod background;
-mod configuration;
+pub mod configuration;
 mod dragging;
 mod lines;
 pub struct TimelineRendererPlugin;

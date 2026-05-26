@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Sub},
 };
 
-use temporal_rs::{TemporalError, TemporalResult, partial::PartialDuration};
+use temporal_rs::{PlainDate, TemporalError, TemporalResult, partial::PartialDuration};
 
 use super::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
@@ -12,10 +12,8 @@ pub struct Year(i32);
 
 impl Year {
     pub fn current() -> TemporalResult<Self> {
-        Ok(Self(
-            temporal_rs::Temporal::utc_now()
-                .plain_date_iso(None)?
-                .year(),
+        Ok(Self::from(
+            temporal_rs::Temporal::utc_now().plain_date_iso(None)?,
         ))
     }
 
@@ -69,6 +67,12 @@ impl Add<i64> for Year {
             )
             .unwrap()
             .to_year()
+    }
+}
+
+impl From<PlainDate> for Year {
+    fn from(value: PlainDate) -> Self {
+        Self(value.year())
     }
 }
 
