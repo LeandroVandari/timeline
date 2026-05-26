@@ -57,7 +57,7 @@ impl TimelineRendererPlugin {
         window: Single<&Window, With<PrimaryWindow>>,
 
         timeline_info_query: Query<(
-            Option<&configuration::TimelineSize>,
+            Option<&configuration::TimelineScreenSize>,
             &Transform,
             &RenderLayers,
         )>,

@@ -5,7 +5,7 @@ use bevy::{
     ecs::{lifecycle::HookContext, world::DeferredWorld},
     prelude::*,
 };
-use timeline_core::date_iteration::year::Year;
+use timeline_core::date_iteration::{YearRange, year::Year};
 use tracing::instrument;
 
 use crate::timeline::Timeline;
@@ -20,9 +20,8 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     Transform,
     Timeline,
     InheritedVisibility,
-    TimelineStartYear(Year::current().unwrap()),
+    TimelineRenderRange(YearRange {start: Year::current().unwrap() - 20, end: Year::current().unwrap() + 20}),
     TimelineLineSeparation(100.),
-    TimelineHorizontalRenderMargin(0.5),
     RenderLayers = next_render_layer()
 )]
 pub struct RenderedTimeline;
@@ -39,28 +38,43 @@ fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
         .insert_if_new(RenderedTimeline);
 }
 
-/// Setting for a [`RenderedTimeline`] that indicates the leftmost rendered year.
-#[derive(Debug, Component, Deref, DerefMut, Clone)]
-#[component(on_add = add_rendered_timeline)]
-pub struct TimelineStartYear(pub Year);
-
 /// Setting for a [`RenderedTimeline`] that indicates how spaced apart the vertical lines should be.
 #[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineLineSeparation(pub f32);
 
-/// How much space the [`RenderedTimeline`] should occupy. If not present, renderer will default to window size.
+/// How much space the [`RenderedTimeline`] should occupy on screen. If not present, renderer will default to window size.
 #[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
-// We can require because it doesn't cause a cycle since TimelineSize is optional.
+// We can require because it doesn't cause a cycle since TimelineScreenSize is optional.
 #[require(RenderedTimeline)]
-pub struct TimelineSize(pub Vec2);
+pub struct TimelineScreenSize(pub Vec2);
 
-/// How much extra invisible space the [`RenderedTimeline`] should render beyond the visible area, in percent.
+/// The range of years the [`RenderedTimeline`] will render.
 ///
-/// This is needed so that things that have a width don't just pop into existence half way into the screen when their coordinate gets into the visible area.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
-#[component(on_add=add_rendered_timeline)]
-pub struct TimelineHorizontalRenderMargin(pub f32);
+/// Note that this doesn't mean all rendered years appear on screen. The actual visible year range depends
+/// on the [`TimelineScreenSize`] and [`TimelineLineSeparation`]
+#[derive(Debug, Component, Clone)]
+#[component(on_add = add_rendered_timeline)]
+pub struct TimelineRenderRange(pub YearRange);
+
+impl TimelineLineSeparation {
+    #[allow(unused)]
+    pub fn from_range_and_width(range: &TimelineRenderRange, width: f32) -> Self {
+        Self(width / (range.0.len() - 1) as f32)
+    }
+}
+
+impl TimelineRenderRange {
+    pub fn inc(&mut self) {
+        self.0.start = self.0.start.get_next().unwrap();
+        self.0.end = self.0.end.get_next().unwrap();
+    }
+
+    pub fn dec(&mut self) {
+        self.0.start = self.0.start.get_previous().unwrap();
+        self.0.end = self.0.end.get_previous().unwrap();
+    }
+}
 
 #[derive(Debug, Message)]
 pub struct RenderedTimelineCreatedMessage(Entity);

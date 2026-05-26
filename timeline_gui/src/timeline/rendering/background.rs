@@ -1,12 +1,12 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
-use crate::timeline::rendering::{configuration::TimelineSize, dragging::DragMessage};
+use crate::timeline::rendering::{configuration::TimelineScreenSize, dragging::DragMessage};
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(
     mut commands: Commands,
-    render_info_query: Query<(Option<&TimelineSize>, &Transform, &RenderLayers)>,
+    render_info_query: Query<(Option<&TimelineScreenSize>, &Transform, &RenderLayers)>,
     mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
     window: Single<&Window, With<PrimaryWindow>>,
 ) {

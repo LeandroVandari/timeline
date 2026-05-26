@@ -1,10 +1,13 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    ops::{Add, Sub},
+};
 
-use temporal_rs::{TemporalError, TemporalResult};
+use temporal_rs::{TemporalError, TemporalResult, partial::PartialDuration};
 
 use super::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct Year(i32);
 
 impl Year {
@@ -32,6 +35,40 @@ impl Year {
 
     fn months(&self) -> MonthIterator {
         self.clone().into()
+    }
+}
+
+impl Sub<i64> for Year {
+    type Output = Self;
+    fn sub(self, rhs: i64) -> Self::Output {
+        temporal_rs::PlainDate::new_iso(self.0, 1, 1)
+            .unwrap()
+            .subtract(
+                &temporal_rs::Duration::from_partial_duration(
+                    PartialDuration::empty().with_years(rhs),
+                )
+                .unwrap(),
+                Some(temporal_rs::options::Overflow::Reject),
+            )
+            .unwrap()
+            .to_year()
+    }
+}
+
+impl Add<i64> for Year {
+    type Output = Self;
+    fn add(self, rhs: i64) -> Self::Output {
+        temporal_rs::PlainDate::new_iso(self.0, 1, 1)
+            .unwrap()
+            .add(
+                &temporal_rs::Duration::from_partial_duration(
+                    PartialDuration::empty().with_years(rhs),
+                )
+                .unwrap(),
+                Some(temporal_rs::options::Overflow::Reject),
+            )
+            .unwrap()
+            .to_year()
     }
 }
 
