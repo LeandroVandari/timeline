@@ -4,6 +4,7 @@ use bevy::{prelude::*, winit::WinitSettings};
 
 use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
 
+mod query_ext;
 mod setup;
 mod timeline;
 
