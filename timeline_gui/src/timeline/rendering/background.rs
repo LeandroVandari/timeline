@@ -1,7 +1,11 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
-use crate::timeline::rendering::{configuration::TimelineScreenSize, dragging::DragMessage};
+use crate::timeline::rendering::{
+    configuration::{TimelineLineSeparation, TimelineScreenSize},
+    dragging::DragMessage,
+    zooming::ZoomMessage,
+};
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(
@@ -34,6 +38,7 @@ pub fn spawn_timeline_background(
                 render_layers.clone(),
             ))
             .observe(emit_timeline_drag_message)
+            .observe(emit_timeline_zoom_message)
             .id();
 
         commands.entity(entity).add_child(background_entity);
@@ -49,4 +54,27 @@ fn emit_timeline_drag_message(
         let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
         writer.write(DragMessage::new(timeline_entity, trigger.delta));
     }
+}
+
+fn emit_timeline_zoom_message(
+    trigger: On<Pointer<Scroll>>,
+    mut writer: MessageWriter<ZoomMessage>,
+    child_query: Query<&ChildOf>,
+    mut line_separation_query: Query<&mut TimelineLineSeparation>,
+) {
+    if trigger.y == 0. {
+        return;
+    }
+
+    let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+    let zoom_factor = 1. + trigger.y / 100.;
+
+    // Update the LineSeparationMarker
+    line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+
+    writer.write(ZoomMessage::new(
+        timeline_entity,
+        zoom_factor,
+        trigger.hit.position.unwrap().xy(),
+    ));
 }

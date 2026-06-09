@@ -5,6 +5,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::setup::MainCamera;
 use crate::timeline::rendering::dragging::DraggingPlugin;
+use crate::timeline::rendering::zooming::ZoomingPlugin;
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
@@ -12,6 +13,7 @@ mod background;
 pub mod configuration;
 mod dragging;
 mod lines;
+mod zooming;
 pub struct TimelineRendererPlugin;
 
 impl Plugin for TimelineRendererPlugin {
@@ -37,7 +39,7 @@ impl Plugin for TimelineRendererPlugin {
             },
         )
         .add_message::<RenderedTimelineCreatedMessage>()
-        .add_plugins(DraggingPlugin);
+        .add_plugins((DraggingPlugin, ZoomingPlugin));
     }
 }
 
