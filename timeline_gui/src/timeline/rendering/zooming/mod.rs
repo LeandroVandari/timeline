@@ -52,14 +52,12 @@ impl ZoomingPlugin {
                 zoomed_entity,
                 &mut zoom_query,
                 |mut pos| {
-                    pos.translation.x =
-                        (pos.translation.x - anchor.x).mul_add(message.factor(), anchor.x);
+                    pos.translation.x = anchor.x.lerp(pos.translation.x, message.factor());
                 },
             );
 
             vertically_drags_query.for_each_matching(zoomed_entity, &mut zoom_query, |mut pos| {
-                pos.translation.y =
-                    (pos.translation.y - anchor.y).mul_add(message.factor(), anchor.y);
+                pos.translation.y = anchor.y.lerp(pos.translation.y, message.factor());
             });
         }
     }
