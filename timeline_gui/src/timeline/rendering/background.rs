@@ -1,7 +1,16 @@
-use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
+#[cfg(target_os = "macos")]
+use bevy::picking::{hover::PickingInteraction, pointer::PointerInteraction};
+use bevy::{
+    camera::visibility::RenderLayers, input::gestures::PinchGesture, prelude::*,
+    window::PrimaryWindow,
+};
 use tracing::instrument;
 
-use crate::timeline::rendering::{configuration::TimelineScreenSize, dragging::DragMessage};
+use crate::timeline::rendering::{
+    configuration::{TimelineLineSeparation, TimelineScreenSize},
+    dragging::DragMessage,
+    zooming::ZoomMessage,
+};
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(
@@ -32,8 +41,11 @@ pub fn spawn_timeline_background(
                 pos.with_translation(Vec3::new(0., 0., -100.)),
                 Pickable::default(),
                 render_layers.clone(),
+                #[cfg(target_os = "macos")]
+                InteractionBackground,
             ))
             .observe(emit_timeline_drag_message)
+            .observe(emit_timeline_zoom_message)
             .id();
 
         commands.entity(entity).add_child(background_entity);
@@ -48,5 +60,73 @@ fn emit_timeline_drag_message(
     if matches!(trigger.button, PointerButton::Primary) {
         let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
         writer.write(DragMessage::new(timeline_entity, trigger.delta));
+    }
+}
+
+fn emit_timeline_zoom_message(
+    trigger: On<Pointer<Scroll>>,
+    mut writer: MessageWriter<ZoomMessage>,
+    child_query: Query<&ChildOf>,
+    mut line_separation_query: Query<&mut TimelineLineSeparation>,
+) {
+    if trigger.y == 0. {
+        return;
+    }
+
+    let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+    let zoom_factor = 1. + trigger.y / 100.;
+
+    // Update the LineSeparationMarker
+    line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+
+    writer.write(ZoomMessage::new(
+        timeline_entity,
+        zoom_factor,
+        trigger.hit.position.unwrap().xy(),
+    ));
+}
+
+#[cfg(target_os = "macos")]
+#[derive(Debug, Component)]
+pub struct InteractionBackground;
+
+#[cfg(target_os = "macos")]
+pub fn emit_timeline_zoom_message_on_pinch(
+    mut pinch_messages: MessageReader<PinchGesture>,
+
+    mut writer: MessageWriter<ZoomMessage>,
+    child_query: Query<&ChildOf>,
+    mut line_separation_query: Query<&mut TimelineLineSeparation>,
+
+    interaction_background: Query<(Entity, &PickingInteraction), With<InteractionBackground>>,
+    pointer_interaction: Query<&PointerInteraction>,
+) {
+    let timeline_entities: Vec<_> = interaction_background
+        .iter()
+        .filter(|(_, pick_state)| matches!(pick_state, PickingInteraction::Hovered))
+        .map(|(entity, _)| entity)
+        .collect();
+
+    for &PinchGesture(zoom_factor) in pinch_messages.read() {
+        let zoom_factor = 1. + zoom_factor;
+        for bg in timeline_entities.iter() {
+            let timeline_entity = child_query.get(*bg).unwrap().parent();
+            let pos = pointer_interaction
+                .iter()
+                .find_map(|interaction| {
+                    interaction.iter().find_map(|(e, hit)| {
+                        if e != bg {
+                            None
+                        } else {
+                            Some(hit.position.unwrap().xy())
+                        }
+                    })
+                })
+                .unwrap();
+
+            line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+
+            writer.write(ZoomMessage::new(timeline_entity, zoom_factor, pos));
+        }
     }
 }
