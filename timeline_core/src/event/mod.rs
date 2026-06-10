@@ -1,5 +1,10 @@
+#![expect(
+    clippy::module_name_repetitions,
+    reason = "Types in this module are expected to be `use`d. If their name didn't have `Event`, it would be too generic."
+)]
+
 mod data;
-use std::ops::Deref;
+use core::ops::Deref;
 
 pub use data::EventData;
 mod id;

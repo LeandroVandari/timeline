@@ -1,4 +1,4 @@
-use std::{
+use core::{
     fmt::Display,
     ops::{Add, AddAssign, Sub},
 };
@@ -39,7 +39,7 @@ impl ZonedDateTime {
     }
 
     #[must_use]
-    pub fn compare_instant(&self, other: &Self) -> std::cmp::Ordering {
+    pub fn compare_instant(&self, other: &Self) -> core::cmp::Ordering {
         self.0.compare_instant(&other.0)
     }
 }
@@ -108,7 +108,7 @@ impl<'de> Deserialize<'de> for ZonedDateTime {
         use temporal_rs::options as opt;
         let s = <&str>::deserialize(deserializer)?;
 
-        Ok(ZonedDateTime(
+        Ok(Self(
             temporal_rs::ZonedDateTime::from_utf8(
                 s.as_bytes(),
                 opt::Disambiguation::Reject,
@@ -124,7 +124,7 @@ impl<'de> Deserialize<'de> for ZonedDateTime {
 }
 
 impl Display for ZonedDateTime {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
     }
 }

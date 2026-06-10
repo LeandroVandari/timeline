@@ -1,21 +1,21 @@
-use std::collections::HashSet;
-
-use serde::{Deserialize, Serialize};
-use slotmap::SlotMap;
-use thiserror::Error;
-
 use crate::{
     event::{Event, EventData, EventId},
     tag::{TagData, TagId},
-    timeline::Timeline,
 };
+use serde::{Deserialize, Serialize};
+use slotmap::SlotMap;
+use std::collections::HashSet;
+use thiserror::Error;
+pub use timeline::Timeline;
+pub use zoned_datetime::ZonedDateTime;
 
+#[cfg(feature = "date_iteration")]
+pub mod date_iteration;
 pub mod event;
-mod tag;
+pub mod tag;
 mod timeline;
 pub mod when;
 mod zoned_datetime;
-pub use zoned_datetime::ZonedDateTime;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TimelineManager {
@@ -33,8 +33,6 @@ impl TimelineManager {
         }
     }
 
-    ///
-    ///
     /// # Errors
     /// This function will return an error if one or more tags contained in `data` no longer exist in the [`Timeline`]. Valid data *will* be added to the [`Timeline`].
     pub fn insert_event(&mut self, data: EventData) -> Result<EventId, NonExistantTagsError> {

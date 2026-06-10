@@ -1,7 +1,9 @@
+extern crate alloc;
+
 use crate::event::{self, Event, EventData, EventId, EventKey};
+use alloc::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
-use std::collections::BTreeSet;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Timeline {
@@ -12,6 +14,7 @@ pub struct Timeline {
 }
 
 impl Timeline {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             sorted_events: BTreeSet::new(),
@@ -42,6 +45,7 @@ impl Timeline {
         Some(data)
     }
 
+    #[must_use]
     pub fn event_data(&self, id: EventId) -> Option<&EventData> {
         self.events.get(id)
     }

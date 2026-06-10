@@ -1,0 +1,75 @@
+{
+  "timeline": {
+    "sorted_events": [
+      {
+        "id": {
+          "idx": 2,
+          "version": 1
+        },
+        "when": {
+          "Instant": "2008-04-22T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+        }
+      },
+      {
+        "id": {
+          "idx": 3,
+          "version": 1
+        },
+        "when": {
+          "Instant": "2026-04-18T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+        }
+      },
+      {
+        "id": {
+          "idx": 1,
+          "version": 1
+        },
+        "when": {
+          "Instant": "2026-05-05T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+        }
+      }
+    ],
+    "events": [
+      {
+        "value": null,
+        "version": 0
+      },
+      {
+        "value": {
+          "when": {
+            "Instant": "2026-05-05T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+          },
+          "name": "today",
+          "tags": []
+        },
+        "version": 1
+      },
+      {
+        "value": {
+          "when": {
+            "Instant": "2008-04-22T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+          },
+          "name": "aniversario",
+          "tags": []
+        },
+        "version": 1
+      },
+      {
+        "value": {
+          "when": {
+            "Instant": "2026-04-18T00:00:00.000000000+00:00[+00:00][u-ca=iso8601]"
+          },
+          "name": "deutsch zwischen",
+          "tags": []
+        },
+        "version": 1
+      }
+    ]
+  },
+  "tags": [
+    {
+      "value": null,
+      "version": 0
+    }
+  ]
+}

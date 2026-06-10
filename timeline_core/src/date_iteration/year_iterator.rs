@@ -1,35 +1,23 @@
 use std::sync::LazyLock;
+use temporal_rs::{Calendar, TemporalResult};
 
-use godot::prelude::*;
-use temporal_rs::Calendar;
+use crate::date_iteration::YearRange;
 
-use crate::year::{ToYear, Year};
+use super::year::{ToYear as _, Year};
 
-#[derive(Debug, GodotClass)]
-#[class(no_init)]
+#[derive(Debug)]
 pub struct YearIterator {
     curr: temporal_rs::PlainDate,
+    end: Option<Year>,
 }
 
 impl YearIterator {
     // TODO: allow passing in desired calendar
-    pub fn new(start_year: &Year) -> Option<Self> {
-        Some(Self {
-            curr: temporal_rs::PlainDate::try_new(start_year.get(), 1, 1, Calendar::ISO).ok()?,
+    pub fn new(start: &Year) -> TemporalResult<Self> {
+        Ok(Self {
+            curr: temporal_rs::PlainDate::try_new(start.inner(), 1, 1, Calendar::ISO)?,
+            end: None,
         })
-    }
-}
-
-#[godot_api]
-impl YearIterator {
-    #[func]
-    fn create(start_year: Gd<Year>) -> Option<Gd<Self>> {
-        Self::new(&start_year.bind()).map(Gd::from_object)
-    }
-
-    #[func]
-    fn next_year(&mut self) -> Option<Gd<Year>> {
-        self.next().map(Gd::from_object)
     }
 }
 
@@ -43,12 +31,27 @@ impl Iterator for YearIterator {
     type Item = Year;
     fn next(&mut self) -> Option<Self::Item> {
         let year = self.curr.to_year();
+        if self.end.as_ref().is_some_and(|end| &year > end) {
+            return None;
+        }
+
         self.curr = self
             .curr
             .add(&ONE_YEAR, Some(temporal_rs::options::Overflow::Reject))
             .ok()?;
 
         Some(year)
+    }
+}
+
+impl IntoIterator for &YearRange {
+    type IntoIter = YearIterator;
+    type Item = Year;
+    fn into_iter(self) -> Self::IntoIter {
+        YearIterator {
+            curr: temporal_rs::PlainDate::new(self.start.inner(), 1, 1, Calendar::ISO).unwrap(),
+            end: Some(self.end.clone()),
+        }
     }
 }
 

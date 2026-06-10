@@ -1,0 +1,31 @@
+use bevy::{camera::visibility::RenderLayers, prelude::*};
+use timeline_core::TimelineManager;
+
+use crate::timeline::{RenderedTimeline, Timeline};
+
+pub struct SetupPlugin;
+
+impl Plugin for SetupPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, (Self::spawn_timeline, Self::spawn_camera));
+    }
+}
+
+impl SetupPlugin {
+    fn spawn_camera(mut commands: Commands) {
+        commands.spawn((Camera2d, RenderLayers::layer(0), MainCamera));
+    }
+
+    fn spawn_timeline(mut commands: Commands) {
+        commands.spawn((
+            Timeline {
+                manager: TimelineManager::new(),
+            },
+            RenderedTimeline,
+            Transform::from_translation(Vec3::splat(0.)),
+        ));
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct MainCamera;
