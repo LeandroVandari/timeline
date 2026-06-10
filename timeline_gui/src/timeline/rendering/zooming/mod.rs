@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::gestures::PinchGesture, prelude::*};
 
 mod message;
 
@@ -7,8 +7,11 @@ use tracing::instrument;
 
 use crate::{
     query_ext::QueryExt as _,
-    timeline::rendering::dragging::relationship::{
-        HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
+    timeline::rendering::{
+        background,
+        dragging::relationship::{
+            HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
+        },
     },
 };
 
@@ -18,6 +21,12 @@ impl Plugin for ZoomingPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::handle_zoom.run_if(on_message::<ZoomMessage>))
             .add_message::<ZoomMessage>();
+
+        #[cfg(target_os = "macos")]
+        app.add_systems(
+            Update,
+            background::emit_timeline_zoom_message_on_pinch.run_if(on_message::<PinchGesture>),
+        );
     }
 }
 
