@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::query_ext::QueryExt as _;
+use crate::{query_ext::QueryExt as _, zooming::ZoomLevel};
 pub use messages::{DragMessage, WrapAround, WrapDirection};
 use relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
@@ -33,11 +33,15 @@ impl DraggingPlugin {
         vertically_drags_query: Query<&VerticallyDrags>,
         horizontally_drags_query: Query<&HorizontallyDrags>,
 
+        zoom_query: Query<&ZoomLevel>,
+
         mut commands: Commands,
     ) {
         for drag_message in drag_messages.read() {
             let dragged_entity = drag_message.entity();
             let delta = drag_message.delta();
+
+            let zoom = zoom_query.get(dragged_entity).copied().unwrap_or_default();
 
             vertically_drags_query.for_each_matching(
                 dragged_entity,
@@ -50,16 +54,17 @@ impl DraggingPlugin {
                 &mut drag_query,
                 |(mut pos, infinite_drag, entity)| {
                     pos.translation.x += delta.x;
+
                     if let Some(&HorizontalWrapAround {
                         center,
                         half_width,
                         emit_message,
                     }) = infinite_drag
-                        && (pos.translation.x - center) * delta.x.signum() > half_width
+                        && (pos.translation.x - center) * delta.x.signum() > half_width * *zoom
                     {
                         // Wrap it around by adding or subtracting a width
                         pos.translation.x =
-                            (half_width * 2.).mul_add(-delta.x.signum(), pos.translation.x);
+                            (half_width * 2. * *zoom).mul_add(-delta.x.signum(), pos.translation.x);
 
                         if emit_message {
                             commands.trigger(WrapAround {
