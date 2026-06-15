@@ -1,19 +1,21 @@
 use bevy::camera::Viewport;
 use bevy::camera::visibility::RenderLayers;
+#[cfg(target_os = "macos")]
+use bevy::input::gestures::PinchGesture;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
+use crate::dragging::DraggingPlugin;
 use crate::setup::MainCamera;
-use crate::timeline::rendering::dragging::DraggingPlugin;
-use crate::timeline::rendering::zooming::ZoomingPlugin;
+use crate::zooming::ZoomingPlugin;
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
 mod background;
 pub mod configuration;
-mod dragging;
+
 mod lines;
-mod zooming;
+
 pub struct TimelineRendererPlugin;
 
 impl Plugin for TimelineRendererPlugin {
@@ -40,6 +42,12 @@ impl Plugin for TimelineRendererPlugin {
         )
         .add_message::<RenderedTimelineCreatedMessage>()
         .add_plugins((DraggingPlugin, ZoomingPlugin));
+
+        #[cfg(target_os = "macos")]
+        app.add_systems(
+            Update,
+            background::emit_timeline_zoom_message_on_pinch.run_if(on_message::<PinchGesture>),
+        );
     }
 }
 

@@ -2,12 +2,12 @@ use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
-use crate::timeline::rendering::{
-    configuration::{TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize},
-    dragging::{
-        HorizontalWrapAround, WrapAround, WrapDirection,
-        relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
-    },
+use crate::dragging::{
+    HorizontalWrapAround, WrapAround, WrapDirection,
+    relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
+};
+use crate::timeline::rendering::configuration::{
+    TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
 };
 
 /// Spawn the lines for each year and corresponding labels for drawing the timelines.

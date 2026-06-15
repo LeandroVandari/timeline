@@ -6,11 +6,8 @@ use bevy::{
 };
 use tracing::instrument;
 
-use crate::timeline::rendering::{
-    configuration::{TimelineLineSeparation, TimelineScreenSize},
-    dragging::DragMessage,
-    zooming::ZoomMessage,
-};
+use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineScreenSize};
+use crate::{dragging::DragMessage, zooming::ZoomMessage};
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(
@@ -101,7 +98,7 @@ pub fn emit_timeline_zoom_message_on_pinch(
     interaction_background: Query<(Entity, &PickingInteraction), With<InteractionBackground>>,
     pointer_interaction: Query<&PointerInteraction>,
 ) {
-    let timeline_entities: Vec<_> = interaction_background
+    let bg_entities: Vec<_> = interaction_background
         .iter()
         .filter(|(_, pick_state)| matches!(pick_state, PickingInteraction::Hovered))
         .map(|(entity, _)| entity)
@@ -109,7 +106,7 @@ pub fn emit_timeline_zoom_message_on_pinch(
 
     for &PinchGesture(zoom_factor) in pinch_messages.read() {
         let zoom_factor = 1. + zoom_factor;
-        for bg in timeline_entities.iter() {
+        for bg in bg_entities.iter() {
             let timeline_entity = child_query.get(*bg).unwrap().parent();
             let pos = pointer_interaction
                 .iter()

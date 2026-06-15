@@ -4,9 +4,11 @@ use bevy::{prelude::*, winit::WinitSettings};
 
 use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
 
+mod dragging;
 mod query_ext;
 mod setup;
 mod timeline;
+mod zooming;
 
 fn main() -> AppExit {
     App::new()

@@ -1,13 +1,11 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::{
-    query_ext::QueryExt as _,
-    timeline::rendering::dragging::relationship::{
-        HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
-    },
-};
+use crate::query_ext::QueryExt as _;
 pub use messages::{DragMessage, WrapAround, WrapDirection};
+use relationship::{
+    HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
+};
 
 mod messages;
 pub mod relationship;

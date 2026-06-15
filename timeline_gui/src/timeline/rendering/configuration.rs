@@ -22,7 +22,8 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     InheritedVisibility,
     TimelineRenderRange(YearRange {start: Year::current().unwrap() - 20, end: Year::current().unwrap() + 20}),
     TimelineLineSeparation(100.),
-    RenderLayers = next_render_layer()
+    RenderLayers = next_render_layer(),
+    crate::zooming::ZoomLevel
 )]
 pub struct RenderedTimeline;
 
