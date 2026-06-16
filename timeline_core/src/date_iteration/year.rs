@@ -3,7 +3,7 @@ use core::{
     ops::{Add, Sub},
 };
 
-use temporal_rs::{PlainDate, TemporalError, TemporalResult, partial::PartialDuration};
+use temporal_rs::{Calendar, PlainDate, TemporalError, TemporalResult, partial::PartialDuration};
 
 use super::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
@@ -23,12 +23,12 @@ impl Year {
     }
 
     pub fn get_next(&self) -> TemporalResult<Self> {
-        let mut temp_iter = YearIterator::new(self)?;
+        let mut temp_iter = YearIterator::new(self);
         temp_iter.nth(1).ok_or(TemporalError::abrupt_end())
     }
 
     pub fn get_previous(&self) -> TemporalResult<Self> {
-        let mut temp_iter = YearIterator::new(self)?;
+        let mut temp_iter = YearIterator::new(self);
         temp_iter.nth_back(1).ok_or(TemporalError::abrupt_end())
     }
 
@@ -36,13 +36,17 @@ impl Year {
     pub fn months(&self) -> MonthIterator {
         self.clone().into()
     }
+
+    #[must_use]
+    pub fn as_date(&self) -> PlainDate {
+        PlainDate::try_new(self.0, 1, 1, Calendar::ISO).expect("Works as long as `self` is valid.")
+    }
 }
 
 impl Sub<i64> for Year {
     type Output = Self;
     fn sub(self, rhs: i64) -> Self::Output {
-        temporal_rs::PlainDate::new_iso(self.0, 1, 1)
-            .unwrap()
+        self.as_date()
             .subtract(
                 &temporal_rs::Duration::from_partial_duration(
                     PartialDuration::empty().with_years(rhs),
@@ -58,8 +62,7 @@ impl Sub<i64> for Year {
 impl Add<i64> for Year {
     type Output = Self;
     fn add(self, rhs: i64) -> Self::Output {
-        temporal_rs::PlainDate::new_iso(self.0, 1, 1)
-            .unwrap()
+        self.as_date()
             .add(
                 &temporal_rs::Duration::from_partial_duration(
                     PartialDuration::empty().with_years(rhs),

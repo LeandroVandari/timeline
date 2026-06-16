@@ -24,7 +24,7 @@ pub fn spawn_timeline_background(
             .expect("Message should refer to an entity with proper components");
         let render_size = size.map_or(window.size(), |s| **s);
 
-        let background_entity = commands
+        commands
             .spawn((
                 Sprite {
                     custom_size: Some(render_size),
@@ -40,12 +40,10 @@ pub fn spawn_timeline_background(
                 render_layers.clone(),
                 #[cfg(target_os = "macos")]
                 InteractionBackground,
+                ChildOf(entity),
             ))
             .observe(emit_timeline_drag_message)
-            .observe(emit_timeline_zoom_message)
-            .id();
-
-        commands.entity(entity).add_child(background_entity);
+            .observe(emit_timeline_zoom_message);
     }
 }
 
@@ -55,7 +53,10 @@ fn emit_timeline_drag_message(
     mut writer: MessageWriter<DragMessage>,
 ) {
     if matches!(trigger.button, PointerButton::Primary) {
-        let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+        let timeline_entity = child_query
+            .get(trigger.entity)
+            .expect("Background entity is always child of a RenderedTimeline entity.")
+            .parent();
         writer.write(DragMessage::new(timeline_entity, trigger.delta));
     }
 }
@@ -70,11 +71,17 @@ fn emit_timeline_zoom_message(
         return;
     }
 
-    let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+    let timeline_entity = child_query
+        .get(trigger.entity)
+        .expect("Background entity is always child of a RenderedTimeline entity.")
+        .parent();
     let zoom_factor = 1. + trigger.y / 100.;
 
     // Update the LineSeparationMarker
-    line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+    line_separation_query
+        .get_mut(timeline_entity)
+        .expect("RenderedTimeline always has a TimelineLineSeparation child.")
+        .0 *= zoom_factor;
 
     writer.write(ZoomMessage::new(
         timeline_entity,
@@ -107,7 +114,10 @@ pub fn emit_timeline_zoom_message_on_pinch(
     for &PinchGesture(zoom_factor) in pinch_messages.read() {
         let zoom_factor = 1. + zoom_factor;
         for bg in bg_entities.iter() {
-            let timeline_entity = child_query.get(*bg).unwrap().parent();
+            let timeline_entity = child_query
+                .get(*bg)
+                .expect("Background always is always child of a RenderedTimeline.")
+                .parent();
             let pos = pointer_interaction
                 .iter()
                 .find_map(|interaction| {
@@ -121,7 +131,10 @@ pub fn emit_timeline_zoom_message_on_pinch(
                 })
                 .unwrap();
 
-            line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+            line_separation_query
+                .get_mut(timeline_entity)
+                .expect("RenderedTimeline always has a TimelineLineSeparation child.")
+                .0 *= zoom_factor;
 
             writer.write(ZoomMessage::new(timeline_entity, zoom_factor, pos));
         }

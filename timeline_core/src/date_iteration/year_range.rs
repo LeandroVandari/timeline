@@ -1,4 +1,4 @@
-use temporal_rs::{Calendar, options::DifferenceSettings};
+use temporal_rs::options::DifferenceSettings;
 
 use crate::date_iteration::{YearIterator, year::Year};
 
@@ -18,13 +18,10 @@ impl YearRange {
         let mut settings = DifferenceSettings::default();
         settings.smallest_unit = Some(temporal_rs::options::Unit::Year);
 
-        temporal_rs::PlainDate::new(self.end.inner(), 1, 1, Calendar::ISO)
-            .unwrap()
-            .since(
-                &temporal_rs::PlainDate::new(self.start.inner(), 1, 1, Calendar::ISO).unwrap(),
-                settings,
-            )
-            .unwrap()
+        self.end
+            .as_date()
+            .since(&self.start.as_date(), settings)
+            .expect("Same calendar and settings are valid.")
             .years()
             .max(0)
             .cast_unsigned() as usize

@@ -72,13 +72,21 @@ impl TimelineLineSeparation {
 
 impl TimelineRenderRange {
     pub fn inc(&mut self) {
-        self.0.start = self.0.start.get_next().unwrap();
         self.0.end = self.0.end.get_next().unwrap();
+        self.0.start = self
+            .0
+            .start
+            .get_next()
+            .expect("since start < end, and end has a next, start should also.");
     }
 
     pub fn dec(&mut self) {
         self.0.start = self.0.start.get_previous().unwrap();
-        self.0.end = self.0.end.get_previous().unwrap();
+        self.0.end = self
+            .0
+            .end
+            .get_previous()
+            .expect("since start < end, and start has a previous, end should also.");
     }
 }
 

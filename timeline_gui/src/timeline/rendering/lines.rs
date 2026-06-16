@@ -89,8 +89,8 @@ pub fn spawn_timeline_lines(
                               mut label_query: Query<(&mut YearLabel, &mut Text2d)>,
                               mut range_query: Query<&mut TimelineRenderRange>| {
                             let (mut year, mut text_label) =
-                                label_query.get_mut(trigger.entity).unwrap();
-                            let mut range = range_query.get_mut(entity).unwrap();
+                                label_query.get_mut(trigger.entity).expect("The entity has a Text2d and YearLabel");
+                            let mut range = range_query.get_mut(entity).expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange.");
                             match trigger.direction {
                                 WrapDirection::Left => {
                                     range.inc();

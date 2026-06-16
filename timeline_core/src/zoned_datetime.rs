@@ -72,7 +72,7 @@ impl Default for ZonedDateTime {
                 temporal_rs::TimeZone::UtcOffset(temporal_rs::UtcOffset::from_minutes(0)),
                 temporal_rs::Calendar::ISO,
             )
-            .unwrap(),
+            .expect("This is constant and valid."),
         )
     }
 }

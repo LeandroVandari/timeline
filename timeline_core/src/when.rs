@@ -75,6 +75,7 @@ impl Display for When {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::print_stdout, reason = "test")]
+    #![allow(clippy::unwrap_used, reason = "test")]
     use temporal_rs::{Calendar, UtcOffset};
 
     use super::*;

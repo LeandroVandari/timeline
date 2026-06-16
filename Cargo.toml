@@ -17,7 +17,7 @@ panic = "abort"
 # "missing_inline_in_public_items" = "warn"
 # "missing_panics_doc" = "warn"
 # "missing_docs_in_private_items" = "warn"
-# "unwrap_used" = "warn"
+# unwrap_used = "warn"
 print_stderr = "warn"
 print_stdout = { level = "warn" }
 # cargo_common_metadata = "warn"

@@ -101,7 +101,7 @@ impl TimelineRendererPlugin {
                         physical_position: (main_camera
                             .0
                             .world_to_viewport(main_camera.1, viewport_pos)
-                            .unwrap()
+                            .expect("The main camera's coordinates are convertible to a viewport")
                             * window.scale_factor())
                         .as_uvec2(),
                         physical_size: (render_size * window.scale_factor()).as_uvec2(),
