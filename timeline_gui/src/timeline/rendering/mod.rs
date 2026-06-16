@@ -91,8 +91,12 @@ impl TimelineRendererPlugin {
                 Camera2d,
                 render_layers.clone(),
                 Camera {
-                    // TODO: rework figured out ordering
-                    order: entity.index_u32() as isize,
+                    order: render_layers
+                        .iter()
+                        .next()
+                        .expect("There should be a render layer for the Timeline")
+                        .try_into()
+                        .expect("RenderLayer shouldn't be huge"),
                     viewport: Some(Viewport {
                         physical_position: (main_camera
                             .0
