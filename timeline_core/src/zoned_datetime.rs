@@ -3,7 +3,7 @@ use core::{
     ops::{Add, AddAssign, Sub},
 };
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::Error};
 
 #[derive(Debug, Clone)]
 pub struct ZonedDateTime(temporal_rs::ZonedDateTime);
@@ -81,6 +81,7 @@ impl Serialize for ZonedDateTime {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
+        <S as Serializer>::Error: Error,
     {
         use temporal_rs::options as opt;
         serializer.serialize_str(
@@ -95,7 +96,12 @@ impl Serialize for ZonedDateTime {
                         ..Default::default()
                     },
                 )
-                .unwrap(),
+                .map_err(|e| {
+                    <S as Serializer>::Error::custom(format!(
+                        "Couldn't serialize DateTime: {}",
+                        e.into_message()
+                    ))
+                })?,
         )
     }
 }
