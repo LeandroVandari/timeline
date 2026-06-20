@@ -1,87 +1,64 @@
+use bevy::ecs::query::QueryEntityError;
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
-use crate::dragging::{
-    HorizontalWrapAround, WrapAround, WrapDirection,
-    relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
-};
 use crate::timeline::rendering::configuration::{
     TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
 };
+use crate::{
+    dragging::{
+        HorizontalWrapAround, WrapAround, WrapDirection,
+        relationship::{DraggedBy, HorizontallyDraggedBy, VerticallyDraggedBy},
+    },
+    timeline::rendering::configuration::RenderedTimelineCreatedMessage,
+};
 
-/// Spawn the lines for each year and corresponding labels for drawing the timelines.
-#[instrument(skip_all)]
-#[expect(
-    clippy::cast_precision_loss,
-    reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
-)]
-pub fn spawn_timeline_lines(
-    mut commands: Commands,
-    window: Single<&Window, With<PrimaryWindow>>,
+pub struct TimelineLinesPlugin;
 
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+impl Plugin for TimelineLinesPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                Self::create_vertical_line_render_info,
+                Self::spawn_timeline_lines,
+            )
+                .chain()
+                .run_if(on_message::<RenderedTimelineCreatedMessage>),
+        );
+    }
+}
 
-    render_info_query: Query<(
-        Option<&TimelineScreenSize>,
-        &Transform,
-        &RenderLayers,
-        &TimelineLineSeparation,
-        &TimelineRenderRange,
-    )>,
-    mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
-) {
-    for msg in added_render_infos.read() {
-        let entity = msg.entity();
-        let (size, pos, render_layers, &line_separation, render_range) = render_info_query
-            .get(entity)
-            .expect("Message should refer to an entity with proper components.");
-        trace!("Spawning lines for timeline {entity}");
-        let render_size = size.map_or(window.size(), |s| **s);
+impl TimelineLinesPlugin {
+    #[tracing::instrument(skip_all)]
+    fn spawn_vertical_lines(
+        commands: &mut Commands,
+        timeline_entity: Entity,
 
-        // Main, horizontal line
-        commands.entity(entity).with_child((
-            VerticallyDraggedBy(entity),
-            Mesh2d(meshes.add(Rectangle::new(render_size.x, 3.))),
-            MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
-            pos.with_translation(Vec3::ZERO),
-            render_layers.clone(),
-        ));
+        timeline_info: Query<(&Transform, &VerticalLineRenderInfo, &RenderLayers)>,
+        lines: impl Iterator<Item = (f32, Year)>,
+    ) -> Result<(), QueryEntityError> {
+        trace!("Spawning vertical lines for timeline {timeline_entity}");
+        let (pos, render_info, render_layers) = timeline_info.get(timeline_entity)?;
 
-        // Vertical lines for years
-        let year_line_mesh = meshes.add(Rectangle::new(1., render_size.y));
-        let year_line_material = materials.add(Color::srgb(0.8, 0.8, 0.8));
-
-        let year_iterator = render_range.0.into_iter();
-        let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
-        for (i, year) in year_iterator.enumerate() {
-            let year_x_pos = line_separation.mul_add(i as f32, -draw_width / 2.);
-
-            commands.entity(entity).with_children(|spawner| {
-                spawner.spawn((
-                    HorizontalWrapAround {
-                        center: pos.translation.x,
-                        half_width: draw_width / 2.,
-                        emit_message: false,
-                    },
-                    HorizontallyDraggedBy(entity),
-                    Mesh2d(year_line_mesh.clone()),
-                    MeshMaterial2d(year_line_material.clone()),
-                    pos.with_translation(Vec3::new(year_x_pos, 0., 0.)),
+        commands.entity(timeline_entity).with_children(|spawner|{
+            for (line_x_pos, year) in lines {
+            spawner.spawn((
+                    render_info.wrap_info,
+                    HorizontallyDraggedBy(timeline_entity),
+                    Mesh2d(render_info.mesh.clone()),
+                    MeshMaterial2d(render_info.material.clone()),
+                    pos.with_translation(Vec3::new(line_x_pos, 0., 0.)),
                     render_layers.clone(),
                 ));
                 spawner
                     .spawn((
-                        HorizontalWrapAround {
-                            center: pos.translation.x,
-                            half_width: draw_width / 2.,
-                            emit_message: true,
-                        },
-                        DraggedBy::new(entity),
+                        render_info.wrap_info,
+                        DraggedBy::new(timeline_entity),
                         Text2d::new(year.to_string()),
                         YearLabel(year),
-                        pos.with_translation(Vec3::new(year_x_pos, -15., 0.)),
+                        pos.with_translation(Vec3::new(line_x_pos, -15., 0.)),
                         render_layers.clone(),
                     ))
                     .observe(
@@ -90,7 +67,7 @@ pub fn spawn_timeline_lines(
                               mut range_query: Query<&mut TimelineRenderRange>| {
                             let (mut year, mut text_label) =
                                 label_query.get_mut(trigger.entity).expect("The entity has a Text2d and YearLabel");
-                            let mut range = range_query.get_mut(entity).expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange.");
+                            let mut range = range_query.get_mut(timeline_entity).expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange.");
                             match trigger.direction {
                                 WrapDirection::Left => {
                                     range.inc();
@@ -102,10 +79,117 @@ pub fn spawn_timeline_lines(
                             }
                             text_label.0 = year.0.to_string();
                         },
-                    );
-            });
+        );}});
+
+        Ok(())
+    }
+
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
+    )]
+    #[tracing::instrument(skip_all)]
+    fn create_vertical_line_render_info(
+        mut commands: Commands,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
+        timeline_info_query: Query<(
+            &Transform,
+            Option<&TimelineScreenSize>,
+            &TimelineRenderRange,
+            &TimelineLineSeparation,
+        )>,
+        window: Single<&Window, With<PrimaryWindow>>,
+    ) {
+        for added_render_info in added_render_infos.read() {
+            trace!(
+                "Creating vertical line render info for timeline {}",
+                added_render_info.entity()
+            );
+            let (timeline_pos, size, render_range, &line_separation) =
+                timeline_info_query.get(added_render_info.entity()).unwrap();
+            let render_size = size.map_or(window.size(), |s| **s);
+
+            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
+
+            commands
+                .entity(added_render_info.entity())
+                .insert(VerticalLineRenderInfo {
+                    mesh: meshes.add(Rectangle::new(1., render_size.y)),
+                    material: materials.add(Color::srgb(0.8, 0.8, 0.8)),
+                    wrap_info: HorizontalWrapAround {
+                        center: timeline_pos.translation.x,
+                        half_width: draw_width / 2.,
+                        emit_message: true,
+                    },
+                });
         }
     }
+
+    /// Spawn the lines for each year and corresponding labels for drawing the timelines.
+    #[instrument(skip_all)]
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
+    )]
+    fn spawn_timeline_lines(
+        mut commands: Commands,
+        window: Single<&Window, With<PrimaryWindow>>,
+
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+
+        render_info_query: Query<(
+            Option<&TimelineScreenSize>,
+            &Transform,
+            &RenderLayers,
+            &TimelineLineSeparation,
+            &TimelineRenderRange,
+        )>,
+        mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
+
+        timeline_info: Query<(&Transform, &VerticalLineRenderInfo, &RenderLayers)>,
+    ) {
+        for msg in added_render_infos.read() {
+            let timeline_entity = msg.entity();
+            let (size, pos, render_layers, &line_separation, render_range) = render_info_query
+                .get(timeline_entity)
+                .expect("Message should refer to an entity with proper components.");
+            trace!("Spawning lines for timeline {timeline_entity}");
+            let render_size = size.map_or(window.size(), |s| **s);
+
+            // Main, horizontal line
+            commands.entity(timeline_entity).with_child((
+                VerticallyDraggedBy(timeline_entity),
+                Mesh2d(meshes.add(Rectangle::new(render_size.x, 3.))),
+                MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
+                pos.with_translation(Vec3::ZERO),
+                render_layers.clone(),
+            ));
+
+            // Vertical lines for years
+
+            let year_iterator = render_range.0.into_iter();
+            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
+            Self::spawn_vertical_lines(
+                &mut commands,
+                timeline_entity,
+                timeline_info,
+                year_iterator
+                    .enumerate()
+                    .map(|(i, year)| (line_separation.mul_add(i as f32, -draw_width / 2.), year)),
+            )
+            .expect("The timeline entity has all the required components.");
+        }
+    }
+}
+
+#[derive(Debug, Component, Clone)]
+struct VerticalLineRenderInfo {
+    mesh: Handle<Mesh>,
+    material: Handle<ColorMaterial>,
+    wrap_info: HorizontalWrapAround,
 }
 
 #[derive(Debug, Component)]

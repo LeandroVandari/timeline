@@ -83,7 +83,7 @@ impl DraggingPlugin {
     }
 }
 
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Clone, Copy)]
 // TODO: Generalize to vertical drag aswell.
 pub struct HorizontalWrapAround {
     pub center: f32,
