@@ -4,6 +4,7 @@ use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
 use crate::timeline::rendering::configuration::TimelineRenderRange;
+use crate::zooming::{ZoomMessage, ZoomSet};
 use crate::{
     dragging::{
         HorizontalWrapAround, WrapAround, WrapDirection,
@@ -13,6 +14,7 @@ use crate::{
 };
 
 mod setup;
+mod zoom;
 
 pub struct TimelineLinesPlugin;
 
@@ -26,6 +28,12 @@ impl Plugin for TimelineLinesPlugin {
             )
                 .chain()
                 .run_if(on_message::<RenderedTimelineCreatedMessage>),
+        )
+        .add_systems(
+            Update,
+            zoom::handle_lines_zoom
+                .run_if(on_message::<ZoomMessage>)
+                .after(ZoomSet),
         )
         .add_observer(Self::year_label_wrap_around);
     }
