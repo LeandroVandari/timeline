@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 mod message;
+mod system_set;
 
 pub use message::ZoomMessage;
 use tracing::instrument;
@@ -11,13 +12,19 @@ use crate::{
     },
     query_ext::QueryExt as _,
 };
+pub use system_set::ZoomSet;
 
 pub struct ZoomingPlugin;
 
 impl Plugin for ZoomingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, Self::handle_zoom.run_if(on_message::<ZoomMessage>))
-            .add_message::<ZoomMessage>();
+        app.add_systems(
+            Update,
+            Self::handle_zoom
+                .run_if(on_message::<ZoomMessage>)
+                .in_set(ZoomSet),
+        )
+        .add_message::<ZoomMessage>();
     }
 }
 
