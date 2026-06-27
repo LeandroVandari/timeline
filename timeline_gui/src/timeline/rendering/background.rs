@@ -65,7 +65,6 @@ fn emit_timeline_zoom_message(
     trigger: On<Pointer<Scroll>>,
     mut writer: MessageWriter<ZoomMessage>,
     child_query: Query<&ChildOf>,
-    mut line_separation_query: Query<&mut TimelineLineSeparation>,
 ) {
     if trigger.y == 0. {
         return;
@@ -76,12 +75,6 @@ fn emit_timeline_zoom_message(
         .expect("Background entity is always child of a RenderedTimeline entity.")
         .parent();
     let zoom_factor = 1. + trigger.y / 100.;
-
-    // Update the LineSeparationMarker
-    line_separation_query
-        .get_mut(timeline_entity)
-        .expect("RenderedTimeline always has a TimelineLineSeparation child.")
-        .0 *= zoom_factor;
 
     writer.write(ZoomMessage::new(
         timeline_entity,

@@ -6,6 +6,7 @@ use crate::{
     timeline::rendering::configuration::{
         TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
     },
+    zooming::ZoomLevel,
 };
 
 use super::VerticalLineRenderInfo;
@@ -60,6 +61,7 @@ impl super::TimelineLinesPlugin {
         clippy::cast_precision_loss,
         reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
     )]
+    #[expect(clippy::type_complexity, reason = "Bevy's queries are a complex type")]
     pub(super) fn spawn_timeline_lines(
         mut commands: Commands,
         window: Single<&Window, With<PrimaryWindow>>,
@@ -73,6 +75,7 @@ impl super::TimelineLinesPlugin {
             &RenderLayers,
             &TimelineLineSeparation,
             &TimelineRenderRange,
+            &ZoomLevel,
         )>,
         mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
 
@@ -80,9 +83,10 @@ impl super::TimelineLinesPlugin {
     ) {
         for msg in added_render_infos.read() {
             let timeline_entity = msg.entity();
-            let (size, pos, render_layers, &line_separation, render_range) = render_info_query
-                .get(timeline_entity)
-                .expect("Message should refer to an entity with proper components.");
+            let (size, pos, render_layers, &line_separation, render_range, &zoom_level) =
+                render_info_query
+                    .get(timeline_entity)
+                    .expect("Message should refer to an entity with proper components.");
             trace!("Spawning lines for timeline {timeline_entity}");
             let render_size = size.map_or(window.size(), |s| **s);
 
@@ -98,14 +102,17 @@ impl super::TimelineLinesPlugin {
             // Vertical lines for years
 
             let year_iterator = render_range.0.into_iter();
-            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
+            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation * *zoom_level;
             Self::spawn_vertical_lines(
                 &mut commands,
                 timeline_entity,
                 timeline_info,
-                year_iterator
-                    .enumerate()
-                    .map(|(i, year)| (line_separation.mul_add(i as f32, -draw_width / 2.), year)),
+                year_iterator.enumerate().map(move |(i, year)| {
+                    (
+                        (*line_separation * *zoom_level).mul_add(i as f32, -draw_width / 2.),
+                        year,
+                    )
+                }),
             )
             .expect("The timeline entity has all the required components.");
         }
