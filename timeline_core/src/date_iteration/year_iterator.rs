@@ -4,7 +4,7 @@ use crate::date_iteration::YearRange;
 
 use super::year::{ToYear as _, Year};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct YearIterator {
     curr: temporal_rs::PlainDate,
     end: Option<Year>,
