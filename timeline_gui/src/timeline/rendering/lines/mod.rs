@@ -35,10 +35,8 @@ impl Plugin for TimelineLinesPlugin {
             Update,
             (
                 zoom::update_offset_on_zoom,
-                (
-                    zoom::update_wrap_around_info_on_zoom.before(wrap_around::WrapAroundSet),
-                    zoom::handle_lines_zoom,
-                ),
+                zoom::create_lines_on_zoom,
+                zoom::update_wrap_around_info_on_zoom.before(wrap_around::WrapAroundSet),
             )
                 .chain()
                 .run_if(on_message::<ZoomMessage>)
