@@ -14,6 +14,7 @@ mod dragging;
 mod query_ext;
 mod setup;
 mod timeline;
+mod wrap_around;
 mod zooming;
 
 fn main() -> AppExit {

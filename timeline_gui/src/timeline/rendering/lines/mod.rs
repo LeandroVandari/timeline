@@ -4,12 +4,10 @@ use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
 use crate::timeline::rendering::configuration::TimelineRenderRange;
+use crate::wrap_around::{WrapAround, WrapAroundEvent, WrapDirection};
 use crate::zooming::{ZoomMessage, ZoomSet};
 use crate::{
-    dragging::{
-        HorizontalWrapAround, WrapAround, WrapDirection,
-        relationship::{DraggedBy, HorizontallyDraggedBy},
-    },
+    dragging::relationship::{DraggedBy, HorizontallyDraggedBy},
     timeline::rendering::configuration::RenderedTimelineCreatedMessage,
 };
 
@@ -57,7 +55,7 @@ impl TimelineLinesPlugin {
             let render_layers = render_layers.to_owned();
             let lines = lines.clone().map(move |(line_x_pos, _year)| {
                 (
-                    render_info.wrap_info,
+                    WrapAround(timeline_entity),
                     HorizontallyDraggedBy(timeline_entity),
                     Mesh2d(render_info.mesh.clone()),
                     MeshMaterial2d(render_info.material.clone()),
@@ -72,12 +70,11 @@ impl TimelineLinesPlugin {
 
         {
             let pos = *pos;
-            let render_info = render_info.to_owned();
             let render_layers = render_layers.to_owned();
 
             let labels = lines.map(move |(line_x_pos, year)| {
                 (
-                    render_info.wrap_info,
+                    WrapAround(timeline_entity),
                     DraggedBy::new(timeline_entity),
                     Text2d::new(year.to_string()),
                     YearLabel(year),
@@ -93,7 +90,7 @@ impl TimelineLinesPlugin {
     }
 
     fn year_label_wrap_around(
-        trigger: On<WrapAround>,
+        trigger: On<WrapAroundEvent>,
         mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
         mut range_query: Query<&mut TimelineRenderRange>,
     ) {
@@ -121,7 +118,6 @@ impl TimelineLinesPlugin {
 struct VerticalLineRenderInfo {
     mesh: Handle<Mesh>,
     material: Handle<ColorMaterial>,
-    wrap_info: HorizontalWrapAround,
 }
 
 #[derive(Debug, Component)]

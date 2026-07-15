@@ -2,10 +2,11 @@ use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
 use crate::{
-    dragging::{HorizontalWrapAround, relationship::VerticallyDraggedBy},
+    dragging::relationship::VerticallyDraggedBy,
     timeline::rendering::configuration::{
         TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
     },
+    wrap_around::WrapAroundInfo,
     zooming::ZoomLevel,
 };
 
@@ -41,17 +42,17 @@ impl super::TimelineLinesPlugin {
 
             let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
 
-            commands
-                .entity(added_render_info.entity())
-                .insert(VerticalLineRenderInfo {
+            commands.entity(added_render_info.entity()).insert((
+                VerticalLineRenderInfo {
                     mesh: meshes.add(Rectangle::new(1., render_size.y)),
                     material: materials.add(Color::srgb(0.8, 0.8, 0.8)),
-                    wrap_info: HorizontalWrapAround {
-                        center: timeline_pos.translation.x,
-                        half_width: draw_width / 2.,
-                        emit_message: true,
-                    },
-                });
+                },
+                WrapAroundInfo {
+                    center: timeline_pos.translation.x,
+                    half_width: draw_width / 2.,
+                    emit_message: true,
+                },
+            ));
         }
     }
 

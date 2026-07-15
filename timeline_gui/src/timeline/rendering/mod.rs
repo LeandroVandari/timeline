@@ -8,6 +8,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use crate::dragging::DraggingPlugin;
 use crate::setup::MainCamera;
 use crate::timeline::rendering::lines::TimelineLinesPlugin;
+use crate::wrap_around::WrapAroundPlugin;
 use crate::zooming::ZoomingPlugin;
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
@@ -41,7 +42,12 @@ impl Plugin for TimelineRendererPlugin {
             },
         )
         .add_message::<RenderedTimelineCreatedMessage>()
-        .add_plugins((DraggingPlugin, ZoomingPlugin, TimelineLinesPlugin));
+        .add_plugins((
+            DraggingPlugin,
+            ZoomingPlugin,
+            TimelineLinesPlugin,
+            WrapAroundPlugin,
+        ));
 
         #[cfg(target_os = "macos")]
         app.add_systems(

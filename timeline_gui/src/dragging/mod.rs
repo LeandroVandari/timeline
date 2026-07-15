@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::{query_ext::QueryExt as _, zooming::ZoomLevel};
-pub use messages::{DragMessage, WrapAround, WrapDirection};
+use crate::query_ext::QueryExt as _;
+pub use messages::DragMessage;
 use relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
@@ -26,67 +26,28 @@ impl DraggingPlugin {
         mut drag_messages: MessageReader<DragMessage>,
 
         mut drag_query: Query<
-            (&mut Transform, Option<&HorizontalWrapAround>, Entity),
+            &mut Transform,
             Or<(With<VerticallyDraggedBy>, With<HorizontallyDraggedBy>)>,
         >,
 
         vertically_drags_query: Query<&VerticallyDrags>,
         horizontally_drags_query: Query<&HorizontallyDrags>,
-
-        zoom_query: Query<&ZoomLevel>,
-
-        mut commands: Commands,
     ) {
         for drag_message in drag_messages.read() {
             let dragged_entity = drag_message.entity();
             let delta = drag_message.delta();
 
-            let zoom = zoom_query.get(dragged_entity).copied().unwrap_or_default();
-
-            vertically_drags_query.for_each_matching(
-                dragged_entity,
-                &mut drag_query,
-                |(mut pos, ..)| pos.translation.y -= delta.y,
-            );
+            vertically_drags_query.for_each_matching(dragged_entity, &mut drag_query, |mut pos| {
+                pos.translation.y -= delta.y;
+            });
 
             horizontally_drags_query.for_each_matching(
                 dragged_entity,
                 &mut drag_query,
-                |(mut pos, infinite_drag, entity)| {
+                |mut pos| {
                     pos.translation.x += delta.x;
-
-                    if let Some(&HorizontalWrapAround {
-                        center,
-                        half_width,
-                        emit_message,
-                    }) = infinite_drag
-                        && (pos.translation.x - center) * delta.x.signum() > half_width * *zoom
-                    {
-                        // Wrap it around by adding or subtracting a width
-                        pos.translation.x =
-                            (half_width * 2. * *zoom).mul_add(-delta.x.signum(), pos.translation.x);
-
-                        if emit_message {
-                            commands.trigger(WrapAround {
-                                entity,
-                                direction: if delta.x > 0. {
-                                    WrapDirection::Right
-                                } else {
-                                    WrapDirection::Left
-                                },
-                            });
-                        }
-                    }
                 },
             );
         }
     }
-}
-
-#[derive(Debug, Component, Clone, Copy)]
-// TODO: Generalize to vertical drag aswell.
-pub struct HorizontalWrapAround {
-    pub center: f32,
-    pub half_width: f32,
-    pub emit_message: bool,
 }
