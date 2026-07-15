@@ -11,7 +11,7 @@ use crate::timeline::rendering::configuration::TimelineScreenSize;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
 };
-use crate::wrap_around::{WrapAround, WrapAroundEvent, WrapDirection};
+use crate::wrap_around::{self, WrapAround, WrapAroundEvent, WrapDirection};
 use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
 use crate::{
     dragging::relationship::{DraggedBy, HorizontallyDraggedBy},
@@ -37,7 +37,13 @@ impl Plugin for TimelineLinesPlugin {
         )
         .add_systems(
             Update,
-            (zoom::update_offset_on_zoom, zoom::handle_lines_zoom)
+            (
+                zoom::update_offset_on_zoom,
+                (
+                    zoom::update_wrap_around_info_on_zoom.before(wrap_around::WrapAroundSet),
+                    zoom::handle_lines_zoom,
+                ),
+            )
                 .chain()
                 .run_if(on_message::<ZoomMessage>)
                 .after(ZoomSet),

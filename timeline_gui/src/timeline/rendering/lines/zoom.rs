@@ -12,6 +12,7 @@ use crate::{
         },
         lines::VerticalLineRenderInfo,
     },
+    wrap_around::WrapAroundInfo,
     zooming::{ZoomLevel, ZoomMessage},
 };
 
@@ -28,6 +29,26 @@ pub fn update_offset_on_zoom(
                 error!("Couldn't update timeline offset on zoom: {e}");
             }
         }
+    }
+}
+
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "layouting is best effort so this is fine"
+)]
+pub fn update_wrap_around_info_on_zoom(
+    mut updated_timelines: Query<(
+        &ZoomLevel,
+        &TimelineLineSeparation,
+        &TimelineRenderRange,
+        &mut WrapAroundInfo,
+    )>,
+) {
+    for (&zoom, &line_separation, render_range, mut wrap_around_info) in
+        updated_timelines.iter_mut()
+    {
+        let occupied_space = (render_range.0.len() + 1) as f32 * *line_separation * *zoom;
+        wrap_around_info.half_width = occupied_space / 2.;
     }
 }
 

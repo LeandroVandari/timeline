@@ -3,9 +3,11 @@ use bevy::prelude::*;
 mod event;
 mod group;
 mod info;
+mod system_set;
 
 pub use event::WrapAroundEvent;
 pub use info::WrapAroundInfo;
+pub use system_set::WrapAroundSet;
 
 use group::WrapAroundGroup;
 
@@ -15,7 +17,10 @@ pub struct WrapAroundPlugin;
 
 impl Plugin for WrapAroundPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, Self::handle_wrap_around);
+        app.add_systems(
+            Update,
+            Self::handle_wrap_around.in_set(system_set::WrapAroundSet),
+        );
     }
 }
 
