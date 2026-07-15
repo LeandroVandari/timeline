@@ -3,14 +3,18 @@ use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
-use crate::timeline::rendering::configuration::TimelineRenderRange;
+use crate::dragging::DragMessage;
+use crate::timeline::rendering::configuration::{
+    TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
+};
 use crate::wrap_around::{WrapAround, WrapAroundEvent, WrapDirection};
-use crate::zooming::{ZoomMessage, ZoomSet};
+use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
 use crate::{
     dragging::relationship::{DraggedBy, HorizontallyDraggedBy},
     timeline::rendering::configuration::RenderedTimelineCreatedMessage,
 };
 
+mod drag;
 mod setup;
 mod zoom;
 
@@ -29,9 +33,14 @@ impl Plugin for TimelineLinesPlugin {
         )
         .add_systems(
             Update,
-            zoom::handle_lines_zoom
+            (zoom::update_offset_on_zoom, zoom::handle_lines_zoom)
+                .chain()
                 .run_if(on_message::<ZoomMessage>)
                 .after(ZoomSet),
+        )
+        .add_systems(
+            Update,
+            drag::update_timeline_offset_on_drag.run_if(on_message::<DragMessage>),
         )
         .add_observer(Self::year_label_wrap_around);
     }
@@ -92,14 +101,22 @@ impl TimelineLinesPlugin {
     fn year_label_wrap_around(
         trigger: On<WrapAroundEvent>,
         mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
-        mut range_query: Query<&mut TimelineRenderRange>,
+        mut timeline_info_query: Query<(
+            &mut TimelineRenderRange,
+            &mut TimelineHorizontalOffset,
+            &TimelineLineSeparation,
+            &ZoomLevel,
+        )>,
     ) {
         let Ok((mut year, mut text_label, parent)) = label_query.get_mut(trigger.entity) else {
             return;
         };
-        let mut range = range_query
+
+        let (mut range, mut offset, &line_separation, &zoom_level) = timeline_info_query
             .get_mut(parent.0)
-            .expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange.");
+            .expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange and TimelineHorizontalPosition.");
+
+        // Update the timeline range and the label
         match trigger.direction {
             WrapDirection::Left => {
                 range.inc();
@@ -111,6 +128,12 @@ impl TimelineLinesPlugin {
             }
         }
         text_label.0 = year.0.to_string();
+
+        // Update the timeline's x pos
+        match trigger.direction {
+            WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),
+            WrapDirection::Right => **offset = (-*line_separation).mul_add(*zoom_level, **offset),
+        }
     }
 }
 

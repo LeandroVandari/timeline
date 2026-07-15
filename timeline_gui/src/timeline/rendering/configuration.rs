@@ -22,6 +22,7 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     InheritedVisibility,
     TimelineRenderRange(YearRange {start: Year::current().unwrap() - 20, end: Year::current().unwrap() + 20}),
     TimelineLineSeparation(100.),
+    TimelineHorizontalOffset(0.),
     RenderLayers = next_render_layer(),
     crate::zooming::ZoomLevel
 )]
@@ -57,6 +58,10 @@ pub struct TimelineScreenSize(pub Vec2);
 #[derive(Debug, Component, Clone)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineRenderRange(pub YearRange);
+
+#[derive(Debug, Component, Clone, Copy, Deref, DerefMut)]
+#[component(on_add = add_rendered_timeline)]
+pub struct TimelineHorizontalOffset(f32);
 
 impl TimelineLineSeparation {
     #[allow(clippy::allow_attributes)]

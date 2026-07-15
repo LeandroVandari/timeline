@@ -6,11 +6,30 @@ use timeline_core::date_iteration::YearIterator;
 
 use crate::{
     timeline::rendering::{
-        configuration::{TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize},
+        configuration::{
+            TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
+            TimelineScreenSize,
+        },
         lines::VerticalLineRenderInfo,
     },
     zooming::{ZoomLevel, ZoomMessage},
 };
+
+pub fn update_offset_on_zoom(
+    mut zoom_messages: MessageReader<ZoomMessage>,
+    mut offset_query: Query<&mut TimelineHorizontalOffset>,
+) {
+    for message in zoom_messages.read() {
+        match offset_query.get_mut(message.entity()) {
+            Ok(mut offset) => {
+                **offset = message.anchor().x.lerp(**offset, message.factor());
+            }
+            Err(e) => {
+                error!("Couldn't update timeline offset on zoom: {e}");
+            }
+        }
+    }
+}
 
 #[tracing::instrument(skip_all)]
 #[expect(
