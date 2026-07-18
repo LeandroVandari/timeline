@@ -41,12 +41,12 @@ fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
 }
 
 /// Setting for a [`RenderedTimeline`] that indicates how spaced apart the vertical lines should be.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
+#[derive(Debug, Component, Deref, Clone, Copy, Default)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineLineSeparation(pub f32);
 
 /// How much space the [`RenderedTimeline`] should occupy on screen. If not present, renderer will default to window size.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Debug, Component, Deref, Clone, Copy)]
 // We can require because it doesn't cause a cycle since TimelineScreenSize is optional.
 #[require(RenderedTimeline)]
 pub struct TimelineScreenSize(pub Vec2);
