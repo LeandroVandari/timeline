@@ -11,8 +11,6 @@ pub use system_set::WrapAroundSet;
 
 use group::WrapAroundGroup;
 
-use crate::zooming::ZoomLevel;
-
 pub struct WrapAroundPlugin;
 
 impl Plugin for WrapAroundPlugin {
@@ -27,31 +25,27 @@ impl Plugin for WrapAroundPlugin {
 impl WrapAroundPlugin {
     fn handle_wrap_around(
         moved_query: Query<(&mut Transform, &WrapAround, Entity), Changed<Transform>>,
-        wrap_info_query: Query<(&WrapAroundInfo, Option<&ZoomLevel>)>,
+        wrap_info_query: Query<&WrapAroundInfo>,
         mut commands: Commands,
     ) {
         for (mut pos, WrapAround(wrap_entity), entity) in moved_query {
-            let Ok((
-                &WrapAroundInfo {
-                    center,
-                    half_width,
-                    emit_message,
-                },
-                zoom,
-            )) = wrap_info_query.get(*wrap_entity)
+            let Ok(&WrapAroundInfo {
+                center,
+                half_width,
+                emit_message,
+            }) = wrap_info_query.get(*wrap_entity)
             else {
                 error!(
                     "Couldn't get information to wrap around. That is probably because target `WrapAroundGroup` has had its `WrapAroundInfo` component removed."
                 );
                 continue;
             };
-            let zoom = zoom.copied().unwrap_or_default();
 
             let diff_center = pos.translation.x - center;
-            if diff_center.abs() > half_width * *zoom {
+            if diff_center.abs() > half_width {
                 // Wrap it around by adding or subtracting a width
                 pos.translation.x =
-                    (half_width * 2. * *zoom).mul_add(-diff_center.signum(), pos.translation.x);
+                    (half_width * 2.).mul_add(-diff_center.signum(), pos.translation.x);
 
                 if emit_message {
                     commands.trigger(WrapAroundEvent {
