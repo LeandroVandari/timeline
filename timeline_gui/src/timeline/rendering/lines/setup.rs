@@ -47,7 +47,9 @@ impl super::TimelineLinesPlugin {
                 },
                 WrapAroundInfo {
                     center: timeline_pos.translation.x,
-                    half_width: draw_width / 2.,
+                    // Needs a half-line buffer on each size so the line doesn't teleport exacly on top of the one on the other side.
+                    // Midpoint: (occupied_space / 2) + (scaled_line_separation / 2)
+                    half_width: f32::midpoint(draw_width, *line_separation * *zoom_level),
                     emit_message: true,
                 },
             ));

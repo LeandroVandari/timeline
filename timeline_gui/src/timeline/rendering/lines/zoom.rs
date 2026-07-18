@@ -44,8 +44,8 @@ pub fn update_wrap_around_info_on_zoom(
     for (&zoom, &line_separation, render_range, mut wrap_around_info) in
         updated_timelines.iter_mut()
     {
-        wrap_around_info.half_width = occupied_space / 2.;
         let occupied_space = draw_width(render_range, line_separation, zoom);
+        wrap_around_info.half_width = f32::midpoint(occupied_space, *line_separation * *zoom);
     }
 }
 
