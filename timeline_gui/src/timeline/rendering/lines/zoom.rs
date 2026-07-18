@@ -10,6 +10,7 @@ use crate::{
             TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
             TimelineScreenSize,
         },
+        draw_width,
         lines::VerticalLineRenderInfo,
     },
     wrap_around::WrapAroundInfo,
@@ -32,10 +33,6 @@ pub fn update_offset_on_zoom(
     }
 }
 
-#[expect(
-    clippy::cast_precision_loss,
-    reason = "layouting is best effort so this is fine"
-)]
 pub fn update_wrap_around_info_on_zoom(
     mut updated_timelines: Query<(
         &ZoomLevel,
@@ -47,8 +44,8 @@ pub fn update_wrap_around_info_on_zoom(
     for (&zoom, &line_separation, render_range, mut wrap_around_info) in
         updated_timelines.iter_mut()
     {
-        let occupied_space = (render_range.0.len() + 1) as f32 * *line_separation * *zoom;
         wrap_around_info.half_width = occupied_space / 2.;
+        let occupied_space = draw_width(render_range, line_separation, zoom);
     }
 }
 
@@ -90,7 +87,6 @@ pub fn handle_lines_zoom(
 
         let scaled_line_separation = *line_separation * *zoom_level;
         let render_size = size.map_or(window.size(), |s| **s);
-        let occupied_space = (render_range.0.len() + 1) as f32 * scaled_line_separation;
 
         // TODO: Make aware of the proportions to each side.
         #[expect(
@@ -138,5 +134,6 @@ pub fn handle_lines_zoom(
             }),
         )
         .unwrap();
+        let occupied_space = draw_width(&render_range, line_separation, zoom_level);
     }
 }

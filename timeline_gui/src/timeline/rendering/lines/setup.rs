@@ -3,8 +3,9 @@ use tracing::instrument;
 
 use crate::{
     dragging::relationship::VerticallyDraggedBy,
-    timeline::rendering::configuration::{
-        TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
+    timeline::rendering::{
+        configuration::{TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize},
+        draw_width,
     },
     wrap_around::WrapAroundInfo,
     zooming::ZoomLevel,
@@ -13,10 +14,6 @@ use crate::{
 use super::VerticalLineRenderInfo;
 
 impl super::TimelineLinesPlugin {
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
-    )]
     #[tracing::instrument(skip_all)]
     pub(super) fn create_vertical_line_render_info(
         mut commands: Commands,
@@ -28,6 +25,7 @@ impl super::TimelineLinesPlugin {
             Option<&TimelineScreenSize>,
             &TimelineRenderRange,
             &TimelineLineSeparation,
+            &ZoomLevel,
         )>,
         window: Single<&Window, With<PrimaryWindow>>,
     ) {
@@ -36,11 +34,11 @@ impl super::TimelineLinesPlugin {
                 "Creating vertical line render info for timeline {}",
                 added_render_info.entity()
             );
-            let (timeline_pos, size, render_range, &line_separation) =
+            let (timeline_pos, size, render_range, &line_separation, &zoom_level) =
                 timeline_info_query.get(added_render_info.entity()).unwrap();
             let render_size = size.map_or(window.size(), |s| **s);
 
-            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation;
+            let draw_width = draw_width(render_range, line_separation, zoom_level);
 
             commands.entity(added_render_info.entity()).insert((
                 VerticalLineRenderInfo {
@@ -103,7 +101,7 @@ impl super::TimelineLinesPlugin {
             // Vertical lines for years
 
             let year_iterator = render_range.0.into_iter();
-            let draw_width = (render_range.0.len() + 1) as f32 * *line_separation * *zoom_level;
+            let draw_width = draw_width(render_range, line_separation, zoom_level);
             Self::spawn_vertical_lines(
                 &mut commands,
                 timeline_entity,
