@@ -3,7 +3,7 @@ use core::ops::Deref;
 use bevy::{
     ecs::{
         entity::EntityHashSet,
-        query::{QueryData, QueryFilter},
+        query::{IterQueryData, QueryData, QueryFilter},
     },
     prelude::*,
 };
@@ -16,7 +16,7 @@ pub trait QueryExt<'a, FN> {
         properties_query: &mut Query<'_, '_, D, F>,
         func: FN,
     ) where
-        D: QueryData,
+        D: IterQueryData,
         F: QueryFilter,
         FN: FnMut(<D as QueryData>::Item<'_, '_>);
 }
@@ -38,7 +38,7 @@ where
         properties_query: &mut Query<'_, '_, D, F>,
         func: FN,
     ) where
-        D: QueryData,
+        D: IterQueryData,
         F: QueryFilter,
         FN: FnMut(<D as QueryData>::Item<'_, '_>),
     {

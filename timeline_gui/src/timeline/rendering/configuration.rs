@@ -22,7 +22,9 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     InheritedVisibility,
     TimelineRenderRange(YearRange {start: Year::current().unwrap() - 20, end: Year::current().unwrap() + 20}),
     TimelineLineSeparation(100.),
-    RenderLayers = next_render_layer()
+    TimelineHorizontalOffset(0.),
+    RenderLayers = next_render_layer(),
+    crate::zooming::ZoomLevel
 )]
 pub struct RenderedTimeline;
 
@@ -39,12 +41,12 @@ fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
 }
 
 /// Setting for a [`RenderedTimeline`] that indicates how spaced apart the vertical lines should be.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy, Default)]
+#[derive(Debug, Component, Deref, Clone, Copy, Default)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineLineSeparation(pub f32);
 
 /// How much space the [`RenderedTimeline`] should occupy on screen. If not present, renderer will default to window size.
-#[derive(Debug, Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Debug, Component, Deref, Clone, Copy)]
 // We can require because it doesn't cause a cycle since TimelineScreenSize is optional.
 #[require(RenderedTimeline)]
 pub struct TimelineScreenSize(pub Vec2);
@@ -56,6 +58,10 @@ pub struct TimelineScreenSize(pub Vec2);
 #[derive(Debug, Component, Clone)]
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineRenderRange(pub YearRange);
+
+#[derive(Debug, Component, Clone, Copy, Deref, DerefMut)]
+#[component(on_add = add_rendered_timeline)]
+pub struct TimelineHorizontalOffset(f32);
 
 impl TimelineLineSeparation {
     #[allow(clippy::allow_attributes)]
@@ -71,13 +77,21 @@ impl TimelineLineSeparation {
 
 impl TimelineRenderRange {
     pub fn inc(&mut self) {
-        self.0.start = self.0.start.get_next().unwrap();
         self.0.end = self.0.end.get_next().unwrap();
+        self.0.start = self
+            .0
+            .start
+            .get_next()
+            .expect("since start < end, and end has a next, start should also.");
     }
 
     pub fn dec(&mut self) {
         self.0.start = self.0.start.get_previous().unwrap();
-        self.0.end = self.0.end.get_previous().unwrap();
+        self.0.end = self
+            .0
+            .end
+            .get_previous()
+            .expect("since start < end, and start has a previous, end should also.");
     }
 }
 

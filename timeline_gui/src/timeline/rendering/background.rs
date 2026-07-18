@@ -6,11 +6,8 @@ use bevy::{
 };
 use tracing::instrument;
 
-use crate::timeline::rendering::{
-    configuration::{TimelineLineSeparation, TimelineScreenSize},
-    dragging::DragMessage,
-    zooming::ZoomMessage,
-};
+use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineScreenSize};
+use crate::{dragging::DragMessage, zooming::ZoomMessage};
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(
@@ -27,7 +24,7 @@ pub fn spawn_timeline_background(
             .expect("Message should refer to an entity with proper components");
         let render_size = size.map_or(window.size(), |s| **s);
 
-        let background_entity = commands
+        commands
             .spawn((
                 Sprite {
                     custom_size: Some(render_size),
@@ -43,12 +40,10 @@ pub fn spawn_timeline_background(
                 render_layers.clone(),
                 #[cfg(target_os = "macos")]
                 InteractionBackground,
+                ChildOf(entity),
             ))
             .observe(emit_timeline_drag_message)
-            .observe(emit_timeline_zoom_message)
-            .id();
-
-        commands.entity(entity).add_child(background_entity);
+            .observe(emit_timeline_zoom_message);
     }
 }
 
@@ -58,7 +53,10 @@ fn emit_timeline_drag_message(
     mut writer: MessageWriter<DragMessage>,
 ) {
     if matches!(trigger.button, PointerButton::Primary) {
-        let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+        let timeline_entity = child_query
+            .get(trigger.entity)
+            .expect("Background entity is always child of a RenderedTimeline entity.")
+            .parent();
         writer.write(DragMessage::new(timeline_entity, trigger.delta));
     }
 }
@@ -67,17 +65,16 @@ fn emit_timeline_zoom_message(
     trigger: On<Pointer<Scroll>>,
     mut writer: MessageWriter<ZoomMessage>,
     child_query: Query<&ChildOf>,
-    mut line_separation_query: Query<&mut TimelineLineSeparation>,
 ) {
     if trigger.y == 0. {
         return;
     }
 
-    let timeline_entity = child_query.get(trigger.entity).unwrap().parent();
+    let timeline_entity = child_query
+        .get(trigger.entity)
+        .expect("Background entity is always child of a RenderedTimeline entity.")
+        .parent();
     let zoom_factor = 1. + trigger.y / 100.;
-
-    // Update the LineSeparationMarker
-    line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
 
     writer.write(ZoomMessage::new(
         timeline_entity,
@@ -101,7 +98,7 @@ pub fn emit_timeline_zoom_message_on_pinch(
     interaction_background: Query<(Entity, &PickingInteraction), With<InteractionBackground>>,
     pointer_interaction: Query<&PointerInteraction>,
 ) {
-    let timeline_entities: Vec<_> = interaction_background
+    let bg_entities: Vec<_> = interaction_background
         .iter()
         .filter(|(_, pick_state)| matches!(pick_state, PickingInteraction::Hovered))
         .map(|(entity, _)| entity)
@@ -109,8 +106,11 @@ pub fn emit_timeline_zoom_message_on_pinch(
 
     for &PinchGesture(zoom_factor) in pinch_messages.read() {
         let zoom_factor = 1. + zoom_factor;
-        for bg in timeline_entities.iter() {
-            let timeline_entity = child_query.get(*bg).unwrap().parent();
+        for bg in bg_entities.iter() {
+            let timeline_entity = child_query
+                .get(*bg)
+                .expect("Background always is always child of a RenderedTimeline.")
+                .parent();
             let pos = pointer_interaction
                 .iter()
                 .find_map(|interaction| {
@@ -124,7 +124,10 @@ pub fn emit_timeline_zoom_message_on_pinch(
                 })
                 .unwrap();
 
-            line_separation_query.get_mut(timeline_entity).unwrap().0 *= zoom_factor;
+            line_separation_query
+                .get_mut(timeline_entity)
+                .expect("RenderedTimeline always has a TimelineLineSeparation child.")
+                .0 *= zoom_factor;
 
             writer.write(ZoomMessage::new(timeline_entity, zoom_factor, pos));
         }

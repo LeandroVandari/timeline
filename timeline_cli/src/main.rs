@@ -1,3 +1,6 @@
+#![allow(clippy::all)]
+#![warn(clippy::default)]
+
 use std::{collections::HashSet, io::Write as _, path::PathBuf};
 
 use anyhow::{Result, anyhow};

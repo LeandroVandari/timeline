@@ -1,11 +1,10 @@
 use std::sync::LazyLock;
-use temporal_rs::{Calendar, TemporalResult};
 
 use crate::date_iteration::YearRange;
 
 use super::year::{ToYear as _, Year};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct YearIterator {
     curr: temporal_rs::PlainDate,
     end: Option<Year>,
@@ -13,17 +12,18 @@ pub struct YearIterator {
 
 impl YearIterator {
     // TODO: allow passing in desired calendar
-    pub fn new(start: &Year) -> TemporalResult<Self> {
-        Ok(Self {
-            curr: temporal_rs::PlainDate::try_new(start.inner(), 1, 1, Calendar::ISO)?,
+    #[must_use]
+    pub fn new(start: &Year) -> Self {
+        Self {
+            curr: start.as_date(),
             end: None,
-        })
+        }
     }
 }
 
 static ONE_YEAR: LazyLock<temporal_rs::Duration> = LazyLock::new(|| {
     temporal_rs::duration::DateDuration::new(1, 0, 0, 0)
-        .unwrap()
+        .expect("Always valid.")
         .into()
 });
 
@@ -49,7 +49,7 @@ impl IntoIterator for &YearRange {
     type Item = Year;
     fn into_iter(self) -> Self::IntoIter {
         YearIterator {
-            curr: temporal_rs::PlainDate::new(self.start.inner(), 1, 1, Calendar::ISO).unwrap(),
+            curr: self.start.as_date(),
             end: Some(self.end.clone()),
         }
     }

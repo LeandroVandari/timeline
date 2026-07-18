@@ -1,19 +1,24 @@
 use bevy::camera::Viewport;
 use bevy::camera::visibility::RenderLayers;
+#[cfg(target_os = "macos")]
+use bevy::input::gestures::PinchGesture;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
+use crate::dragging::DraggingPlugin;
 use crate::setup::MainCamera;
-use crate::timeline::rendering::dragging::DraggingPlugin;
-use crate::timeline::rendering::zooming::ZoomingPlugin;
+use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineRenderRange};
+use crate::timeline::rendering::lines::TimelineLinesPlugin;
+use crate::wrap_around::WrapAroundPlugin;
+use crate::zooming::{ZoomLevel, ZoomingPlugin};
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
 mod background;
 pub mod configuration;
-mod dragging;
+
 mod lines;
-mod zooming;
+
 pub struct TimelineRendererPlugin;
 
 impl Plugin for TimelineRendererPlugin {
@@ -22,7 +27,6 @@ impl Plugin for TimelineRendererPlugin {
             Update,
             (
                 Self::spawn_timeline_camera,
-                lines::spawn_timeline_lines,
                 background::spawn_timeline_background,
             )
                 .run_if(on_message::<RenderedTimelineCreatedMessage>),
@@ -39,8 +43,31 @@ impl Plugin for TimelineRendererPlugin {
             },
         )
         .add_message::<RenderedTimelineCreatedMessage>()
-        .add_plugins((DraggingPlugin, ZoomingPlugin));
+        .add_plugins((
+            DraggingPlugin,
+            ZoomingPlugin,
+            TimelineLinesPlugin,
+            WrapAroundPlugin,
+        ));
+
+        #[cfg(target_os = "macos")]
+        app.add_systems(
+            Update,
+            background::emit_timeline_zoom_message_on_pinch.run_if(on_message::<PinchGesture>),
+        );
     }
+}
+
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Will only lose precision for extreme ranges"
+)]
+pub fn draw_width(
+    render_range: &TimelineRenderRange,
+    line_separation: TimelineLineSeparation,
+    zoom: ZoomLevel,
+) -> f32 {
+    (render_range.0.len() - 1) as f32 * *line_separation * *zoom
 }
 
 impl TimelineRendererPlugin {
@@ -83,13 +110,17 @@ impl TimelineRendererPlugin {
                 Camera2d,
                 render_layers.clone(),
                 Camera {
-                    // TODO: rework figured out ordering
-                    order: entity.index_u32() as isize,
+                    order: render_layers
+                        .iter()
+                        .next()
+                        .expect("There should be a render layer for the Timeline")
+                        .try_into()
+                        .expect("RenderLayer shouldn't be huge"),
                     viewport: Some(Viewport {
                         physical_position: (main_camera
                             .0
                             .world_to_viewport(main_camera.1, viewport_pos)
-                            .unwrap()
+                            .expect("The main camera's coordinates are convertible to a viewport")
                             * window.scale_factor())
                         .as_uvec2(),
                         physical_size: (render_size * window.scale_factor()).as_uvec2(),

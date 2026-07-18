@@ -5,14 +5,22 @@ edition = "2024"
 license-file.workspace = true
 
 [dependencies]
-bevy = { version = "0.18.1", default-features = false, features = ["2d"] }
+bevy = { version = "0.19.0", default-features = false, features = ["2d"] }
 timeline_core = { path = "../timeline_core", features = ["date_iteration"] }
 tracing = "0.1.44"
+log = { version = "*", features = [
+    "max_level_debug",
+    "release_max_level_warn",
+] }
+
 
 [features]
-debug = ["bevy/debug", "bevy/dynamic_linking"]
+debug = [
+    "bevy/debug",
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_pbr",
+    "bevy/ui",
+]
 profiling = ["bevy/trace", "bevy/debug", "bevy/trace_tracy"]
 default = ["debug"]
-
-[lints]
-workspace = true

@@ -57,7 +57,7 @@ impl Timeline {
     pub fn ordered_events(&self) -> impl Iterator<Item = Event<'_>> {
         self.sorted_events
             .iter()
-            .map(|key| Event::new(key.id(), self.event_data(key.id()).unwrap()))
+            .map(|key| Event::new(key.id(), self.event_data(key.id()).expect("Since the ID was just gotten from the sorted events, the corresponding data must still be present.")))
     }
 
     pub fn events(&self) -> impl Iterator<Item = Event<'_>> {

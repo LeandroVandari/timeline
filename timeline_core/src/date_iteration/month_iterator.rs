@@ -11,8 +11,7 @@ pub struct MonthIterator {
 impl From<Year> for MonthIterator {
     fn from(year: Year) -> Self {
         Self {
-            curr: temporal_rs::PlainDate::try_new(year.inner(), 1, 1, temporal_rs::Calendar::ISO)
-                .unwrap(),
+            curr: year.as_date(),
             year,
         }
     }
@@ -20,7 +19,7 @@ impl From<Year> for MonthIterator {
 
 static ONE_MONTH: LazyLock<temporal_rs::Duration> = LazyLock::new(|| {
     temporal_rs::duration::DateDuration::new(0, 1, 0, 0)
-        .unwrap()
+        .expect("Always valid.")
         .into()
 });
 
