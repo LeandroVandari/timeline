@@ -7,9 +7,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::dragging::DraggingPlugin;
 use crate::setup::MainCamera;
+use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineRenderRange};
 use crate::timeline::rendering::lines::TimelineLinesPlugin;
 use crate::wrap_around::WrapAroundPlugin;
-use crate::zooming::ZoomingPlugin;
+use crate::zooming::{ZoomLevel, ZoomingPlugin};
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 
@@ -55,6 +56,18 @@ impl Plugin for TimelineRendererPlugin {
             background::emit_timeline_zoom_message_on_pinch.run_if(on_message::<PinchGesture>),
         );
     }
+}
+
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Will only lose precision for extreme ranges"
+)]
+pub fn draw_width(
+    render_range: &TimelineRenderRange,
+    line_separation: TimelineLineSeparation,
+    zoom: ZoomLevel,
+) -> f32 {
+    (render_range.0.len() - 1) as f32 * *line_separation * *zoom
 }
 
 impl TimelineRendererPlugin {

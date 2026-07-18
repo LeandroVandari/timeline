@@ -18,13 +18,15 @@ impl YearRange {
         let mut settings = DifferenceSettings::default();
         settings.smallest_unit = Some(temporal_rs::options::Unit::Year);
 
-        self.end
+        (self
+            .end
             .as_date()
             .since(&self.start.as_date(), settings)
             .expect("Same calendar and settings are valid.")
             .years()
-            .max(0)
-            .cast_unsigned() as usize
+            + 1)
+        .max(0)
+        .cast_unsigned() as usize
     }
 
     #[must_use]
