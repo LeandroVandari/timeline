@@ -1,13 +1,9 @@
 use bevy::ecs::query::QueryEntityError;
-#[cfg(feature = "debug")]
-use bevy::window::PrimaryWindow;
 use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
 use crate::dragging::DragMessage;
-#[cfg(feature = "debug")]
-use crate::timeline::rendering::configuration::TimelineScreenSize;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
 };
@@ -53,41 +49,6 @@ impl Plugin for TimelineLinesPlugin {
             drag::update_timeline_offset_on_drag.run_if(on_message::<DragMessage>),
         )
         .add_observer(Self::year_label_wrap_around);
-
-        #[cfg(feature = "debug")]
-        app.add_systems(Update, draw_timeline_gizmos);
-    }
-}
-
-#[cfg(feature = "debug")]
-#[expect(clippy::cast_precision_loss, reason = "Just some debug info")]
-fn draw_timeline_gizmos(
-    mut gizmos: Gizmos,
-    query: Query<(
-        &TimelineHorizontalOffset,
-        &ZoomLevel,
-        &TimelineLineSeparation,
-        &TimelineRenderRange,
-        &Transform,
-        Option<&TimelineScreenSize>,
-    )>,
-    window: Single<&Window, With<PrimaryWindow>>,
-) {
-    for (offset, &zoom, &line_separation, render_range, pos, screen_size) in query.iter() {
-        let size = screen_size.map_or(window.size(), |s| **s);
-        gizmos.line_2d(
-            Vec2::new(**offset, -size.y / 2.),
-            Vec2::new(**offset, size.y / 2.),
-            Color::linear_rgb(0., 0., 1.),
-        );
-        gizmos.rect_2d(
-            Isometry2d::from_translation(Vec2::new(**offset, pos.translation.y)),
-            Vec2::new(
-                (render_range.0.len() + 1) as f32 * *zoom * *line_separation,
-                size.y,
-            ),
-            Color::linear_rgb(0., 1., 0.),
-        );
     }
 }
 
@@ -173,7 +134,6 @@ impl TimelineLinesPlugin {
             }
         }
         text_label.0 = year.0.to_string();
-
         // Update the timeline's x pos
         match trigger.direction {
             WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),

@@ -1,15 +1,10 @@
 #![expect(clippy::needless_pass_by_value, reason = "Bevy Queries")]
-
-#[cfg(feature = "debug")]
-use bevy::{
-    dev_tools::diagnostics_overlay::DiagnosticsOverlayPlugin,
-    diagnostic::FrameTimeDiagnosticsPlugin, pbr::diagnostic::MaterialAllocatorDiagnosticPlugin,
-    render::diagnostic::MeshAllocatorDiagnosticPlugin,
-};
 use bevy::{prelude::*, winit::WinitSettings};
 
 use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
 
+#[cfg(feature = "debug")]
+mod debug;
 mod dragging;
 mod query_ext;
 mod setup;
@@ -33,12 +28,7 @@ fn main() -> AppExit {
             SetupPlugin,
             TimelineRendererPlugin,
             #[cfg(feature = "debug")]
-            (
-                FrameTimeDiagnosticsPlugin::default(),
-                DiagnosticsOverlayPlugin,
-                MaterialAllocatorDiagnosticPlugin::<StandardMaterial>::new(""),
-                MeshAllocatorDiagnosticPlugin,
-            ),
+            debug::DebugPlugin,
         ))
         .run()
 }
