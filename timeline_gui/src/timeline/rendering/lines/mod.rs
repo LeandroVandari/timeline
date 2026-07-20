@@ -5,7 +5,7 @@ use tracing::instrument;
 
 use crate::dragging::DragMessage;
 use crate::timeline::rendering::configuration::{
-    TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
+    TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
 use crate::wrap_around::{self, WrapAround, WrapAroundEvent, WrapDirection};
 use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
@@ -56,11 +56,18 @@ impl TimelineLinesPlugin {
         commands: &mut Commands,
         timeline_entity: Entity,
 
-        timeline_info: Query<(&Transform, &VerticalLineRenderInfo, &RenderLayers)>,
+        timeline_info: Query<(
+            &Transform,
+            &VerticalLineRenderInfo,
+            &RenderLayers,
+            &TimelineVerticalOffset,
+            &ZoomLevel,
+        )>,
         lines: impl Iterator<Item = (f32, Year)> + Send + Sync + 'static + Clone,
     ) -> Result<(), QueryEntityError> {
         trace!("Spawning vertical lines for timeline {timeline_entity}");
-        let (pos, render_info, render_layers) = timeline_info.get(timeline_entity)?;
+        let (pos, render_info, render_layers, vertical_offset, &zoom) =
+            timeline_info.get(timeline_entity)?;
 
         {
             let pos = *pos;
@@ -84,14 +91,18 @@ impl TimelineLinesPlugin {
         {
             let pos = *pos;
             let render_layers = render_layers.to_owned();
-
+            let vertical_offset = vertical_offset.to_owned();
             let labels = lines.map(move |(line_x_pos, year)| {
                 (
                     WrapAround(timeline_entity),
                     DraggedBy::new(timeline_entity),
                     Text2d::new(year.to_string()),
                     YearLabel(year),
-                    pos.with_translation(Vec3::new(line_x_pos, -15., 0.)),
+                    pos.with_translation(Vec3::new(
+                        line_x_pos,
+                        15.0_f32.mul_add(-*zoom, *vertical_offset),
+                        0.,
+                    )),
                     render_layers.clone(),
                     ChildOf(timeline_entity),
                 )
