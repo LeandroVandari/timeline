@@ -4,7 +4,9 @@ use tracing::instrument;
 use crate::{
     dragging::relationship::VerticallyDraggedBy,
     timeline::rendering::{
-        configuration::{TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize},
+        configuration::{
+            TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize, TimelineVerticalOffset,
+        },
         draw_width,
     },
     wrap_around::WrapAroundInfo,
@@ -80,7 +82,13 @@ impl super::TimelineLinesPlugin {
         )>,
         mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
 
-        timeline_info: Query<(&Transform, &VerticalLineRenderInfo, &RenderLayers)>,
+        timeline_info: Query<(
+            &Transform,
+            &VerticalLineRenderInfo,
+            &RenderLayers,
+            &TimelineVerticalOffset,
+            &ZoomLevel,
+        )>,
     ) {
         for msg in added_render_infos.read() {
             let timeline_entity = msg.entity();
