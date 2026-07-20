@@ -22,7 +22,11 @@ fn main() -> AppExit {
             }),
             ..Default::default()
         }))
-        .insert_resource(WinitSettings::desktop_app())
+        .insert_resource(if cfg!(feature = "profiling") {
+            WinitSettings::continuous()
+        } else {
+            WinitSettings::desktop_app()
+        })
         .insert_resource(ClearColor(Color::hsv(0., 0., 0.3)))
         .add_plugins((
             SetupPlugin,
