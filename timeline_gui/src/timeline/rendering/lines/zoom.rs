@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn update_offset_on_zoom(
-    mut zoom_messages: MessageReader<ZoomMessage>,
+    mut zoom_messages: PopulatedMessageReader<ZoomMessage>,
     mut offset_query: Query<(&mut TimelineHorizontalOffset, &mut TimelineVerticalOffset)>,
 ) {
     for message in zoom_messages.read() {
@@ -57,7 +57,7 @@ pub fn update_wrap_around_info_on_zoom(
     reason = "Lines layouting is best effort"
 )]
 pub fn create_lines_on_zoom(
-    mut zoom_messages: MessageReader<ZoomMessage>,
+    mut zoom_messages: PopulatedMessageReader<ZoomMessage>,
     mut timeline_info: Query<(
         &ZoomLevel,
         &TimelineLineSeparation,

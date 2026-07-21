@@ -8,7 +8,7 @@ use crate::{
 
 #[instrument(skip_all)]
 pub fn update_timeline_offset_on_drag(
-    mut drag_messages: MessageReader<DragMessage>,
+    mut drag_messages: PopulatedMessageReader<DragMessage>,
     mut timeline_offset_query: Query<(&mut TimelineHorizontalOffset, &mut TimelineVerticalOffset)>,
 ) {
     for msg in drag_messages.read() {

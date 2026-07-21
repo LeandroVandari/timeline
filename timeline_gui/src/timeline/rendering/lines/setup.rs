@@ -18,10 +18,10 @@ use super::VerticalLineRenderInfo;
 impl super::TimelineLinesPlugin {
     #[tracing::instrument(skip_all)]
     pub(super) fn create_vertical_line_render_info(
+        mut added_render_infos: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
         mut commands: Commands,
         mut materials: ResMut<Assets<ColorMaterial>>,
         mut meshes: ResMut<Assets<Mesh>>,
-        mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
         timeline_info_query: Query<(
             &Transform,
             Option<&TimelineScreenSize>,
@@ -66,6 +66,8 @@ impl super::TimelineLinesPlugin {
     )]
     #[expect(clippy::type_complexity, reason = "Bevy's queries are a complex type")]
     pub(super) fn spawn_timeline_lines(
+        mut added_render_infos: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
+
         mut commands: Commands,
         window: Single<&Window, With<PrimaryWindow>>,
 
@@ -80,7 +82,6 @@ impl super::TimelineLinesPlugin {
             &TimelineRenderRange,
             &ZoomLevel,
         )>,
-        mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
 
         timeline_info: Query<(
             &Transform,

@@ -1,7 +1,5 @@
 use bevy::camera::Viewport;
 use bevy::camera::visibility::RenderLayers;
-#[cfg(target_os = "macos")]
-use bevy::input::gestures::PinchGesture;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
@@ -28,8 +26,7 @@ impl Plugin for TimelineRendererPlugin {
             (
                 Self::spawn_timeline_camera,
                 background::spawn_timeline_background,
-            )
-                .run_if(on_message::<RenderedTimelineCreatedMessage>),
+            ),
         )
         .add_observer(
             |trigger: On<Add, RenderedTimeline>,
@@ -51,10 +48,7 @@ impl Plugin for TimelineRendererPlugin {
         ));
 
         #[cfg(target_os = "macos")]
-        app.add_systems(
-            Update,
-            background::emit_timeline_zoom_message_on_pinch.run_if(on_message::<PinchGesture>),
-        );
+        app.add_systems(Update, background::emit_timeline_zoom_message_on_pinch);
     }
 }
 
@@ -92,7 +86,7 @@ impl TimelineRendererPlugin {
             &RenderLayers,
         )>,
 
-        mut added_render_infos: MessageReader<RenderedTimelineCreatedMessage>,
+        mut added_render_infos: PopulatedMessageReader<RenderedTimelineCreatedMessage>,
     ) {
         for msg in added_render_infos.read() {
             let entity = msg.entity();

@@ -13,7 +13,7 @@ use crate::{dragging::DragMessage, zooming::ZoomMessage};
 pub fn spawn_timeline_background(
     mut commands: Commands,
     render_info_query: Query<(Option<&TimelineScreenSize>, &Transform, &RenderLayers)>,
-    mut added_render_infos: MessageReader<super::RenderedTimelineCreatedMessage>,
+    mut added_render_infos: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
     window: Single<&Window, With<PrimaryWindow>>,
 ) {
     for msg in added_render_infos.read() {
@@ -89,7 +89,7 @@ pub struct InteractionBackground;
 
 #[cfg(target_os = "macos")]
 pub fn emit_timeline_zoom_message_on_pinch(
-    mut pinch_messages: MessageReader<PinchGesture>,
+    mut pinch_messages: PopulatedMessageReader<PinchGesture>,
 
     mut writer: MessageWriter<ZoomMessage>,
     child_query: Query<&ChildOf>,

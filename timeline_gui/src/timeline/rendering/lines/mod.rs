@@ -3,7 +3,6 @@ use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
-use crate::dragging::DragMessage;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
@@ -28,24 +27,21 @@ impl Plugin for TimelineLinesPlugin {
                 Self::create_vertical_line_render_info,
                 Self::spawn_timeline_lines,
             )
-                .chain()
-                .run_if(on_message::<RenderedTimelineCreatedMessage>),
+                .chain(),
         )
         .add_systems(
             Update,
             (
                 zoom::update_offset_on_zoom,
                 zoom::create_lines_on_zoom,
-                zoom::update_wrap_around_info_on_zoom.before(wrap_around::WrapAroundSet),
+                zoom::update_wrap_around_info_on_zoom
+                    .before(wrap_around::WrapAroundSet)
+                    .run_if(on_message::<ZoomMessage>),
             )
                 .chain()
-                .run_if(on_message::<ZoomMessage>)
                 .after(ZoomSet),
         )
-        .add_systems(
-            Update,
-            drag::update_timeline_offset_on_drag.run_if(on_message::<DragMessage>),
-        )
+        .add_systems(Update, drag::update_timeline_offset_on_drag)
         .add_observer(Self::year_label_wrap_around);
     }
 }

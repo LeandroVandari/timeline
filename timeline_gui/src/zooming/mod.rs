@@ -18,13 +18,8 @@ pub struct ZoomingPlugin;
 
 impl Plugin for ZoomingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            Self::handle_zoom
-                .run_if(on_message::<ZoomMessage>)
-                .in_set(ZoomSet),
-        )
-        .add_message::<ZoomMessage>();
+        app.add_systems(Update, Self::handle_zoom.in_set(ZoomSet))
+            .add_message::<ZoomMessage>();
     }
 }
 
@@ -35,7 +30,7 @@ impl ZoomingPlugin {
     #[expect(clippy::type_complexity, reason = "Bevy Queries are 'complex types'")]
     #[instrument(skip_all)]
     fn handle_zoom(
-        mut zoom_messages: MessageReader<ZoomMessage>,
+        mut zoom_messages: PopulatedMessageReader<ZoomMessage>,
 
         mut zoom_query: Query<
             &mut Transform,
