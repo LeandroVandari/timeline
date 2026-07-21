@@ -1,3 +1,5 @@
+use core::cmp::Reverse;
+
 use bevy::ecs::query::QueryEntityError;
 use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
@@ -6,16 +8,19 @@ use tracing::instrument;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
+use crate::timeline::rendering::lines::relationship_label::LabelOf;
 use crate::wrap_around::{self, WrapAround, WrapAroundMessage, WrapDirection};
 use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
 use crate::{
-    dragging::relationship::{DraggedBy, HorizontallyDraggedBy},
+    dragging::relationship::{HorizontallyDraggedBy, VerticallyDraggedBy},
     timeline::rendering::configuration::RenderedTimelineCreatedMessage,
 };
 
 mod drag;
 mod setup;
 mod zoom;
+
+mod relationship_label;
 
 pub struct TimelineLinesPlugin;
 
@@ -72,11 +77,12 @@ impl TimelineLinesPlugin {
         let (pos, render_info, render_layers, vertical_offset, &zoom) =
             timeline_info.get(timeline_entity)?;
 
-        {
+        let lines = {
             let pos = *pos;
             let render_info = render_info.to_owned();
             let render_layers = render_layers.to_owned();
-            let lines = lines.clone().map(move |(line_x_pos, _year)| {
+            let vertical_offset = vertical_offset.to_owned();
+            lines.clone().map(move |(line_x_pos, year)| {
                 (
                     WrapAround(timeline_entity),
                     HorizontallyDraggedBy(timeline_entity),
@@ -85,33 +91,24 @@ impl TimelineLinesPlugin {
                     pos.with_translation(Vec3::new(line_x_pos, 0., 0.)),
                     render_layers.clone(),
                     ChildOf(timeline_entity),
+                    children![(
+                        VerticallyDraggedBy(timeline_entity),
+                        Text2d::new(year.to_string()),
+                        YearLabel(year),
+                        pos.with_translation(Vec3::new(
+                            0.,
+                            15.0_f32.mul_add(-*zoom, *vertical_offset),
+                            0.,
+                        )),
+                        render_layers.clone(),
+                        LabelOf(timeline_entity),
+                    )],
                 )
-            });
-
-            commands.spawn_batch(lines);
-        }
-
-        {
-            let pos = *pos;
-            let render_layers = render_layers.to_owned();
-            let vertical_offset = vertical_offset.to_owned();
-            let labels = lines.map(move |(line_x_pos, year)| {
-                (
-                    WrapAround(timeline_entity),
-                    DraggedBy::new(timeline_entity),
-                    Text2d::new(year.to_string()),
-                    YearLabel(year),
-                    pos.with_translation(Vec3::new(
-                        line_x_pos,
-                        15.0_f32.mul_add(-*zoom, *vertical_offset),
-                        0.,
-                    )),
-                    render_layers.clone(),
-                    ChildOf(timeline_entity),
-                )
-            });
-            commands.spawn_batch(labels);
-        }
+            })
+        };
+        lines.for_each(|line_bundle| {
+            commands.spawn(line_bundle);
+        });
 
         Ok(())
     }
@@ -141,31 +138,66 @@ impl TimelineLinesPlugin {
         }
     }
 
+    #[tracing::instrument]
     fn update_year_label_on_wrap_around(
         mut wrap_around_messages: PopulatedMessageReader<WrapAroundMessage>,
-        mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
+
+        wrapped_query: Query<&Children, With<WrapAround>>,
+
+        mut label_query: Query<(Entity, &mut YearLabel, &mut Text2d, &LabelOf)>,
         mut timeline_range_query: Query<&mut TimelineRenderRange>,
     ) {
-        for WrapAroundMessage { entity, direction } in wrap_around_messages.read() {
-            let Ok((mut year, mut text_label, parent)) = label_query.get_mut(*entity) else {
-                return;
-            };
-            let mut range = timeline_range_query
-            .get_mut(parent.0)
-            .expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange and TimelineHorizontalPosition.");
+        let wrapped_labels = wrap_around_messages
+            .read()
+            .filter_map(
+                |WrapAroundMessage {
+                     entity: wrapped_entity,
+                     direction,
+                 }| {
+                    let labels = label_query
+                        .iter_many(wrapped_query.get(*wrapped_entity).ok()?)
+                        .map(move |(entity, label, ..)| (entity, label.0, direction));
 
-            // Update the timeline range and the label
-            match direction {
-                WrapDirection::Left => {
-                    range.inc();
-                    year.0 = range.0.end.clone();
-                }
-                WrapDirection::Right => {
-                    range.dec();
-                    year.0 = range.0.start.clone();
-                }
+                    Some(labels)
+                },
+            )
+            .flatten();
+
+        let mut left = Vec::new();
+        let mut right = Vec::new();
+
+        wrapped_labels.for_each(|(entity, year, direction)| match direction {
+            WrapDirection::Left => {
+                left.push((entity, year));
             }
-            text_label.0 = year.0.to_string();
+            WrapDirection::Right => right.push((entity, year)),
+        });
+
+        left.sort_unstable_by_key(|(_entity, year)| *year);
+        right.sort_unstable_by_key(|(_entity, year)| Reverse(*year));
+
+        for (v, dir) in [(left, WrapDirection::Left), (right, WrapDirection::Right)] {
+            for (entity, _) in v {
+                let (_entity, mut year, mut text_label, timeline_entity) = label_query
+                    .get_mut(entity)
+                    .expect("Just got the entity frow the same query");
+                let mut range = timeline_range_query
+                    .get_mut(timeline_entity.0)
+                    .expect("Label refers to a `RenderedTimeline`");
+
+                // Update the timeline range and the label
+                match dir {
+                    WrapDirection::Left => {
+                        range.inc();
+                        year.0 = range.0.end;
+                    }
+                    WrapDirection::Right => {
+                        range.dec();
+                        year.0 = range.0.start;
+                    }
+                }
+                text_label.0 = year.0.to_string();
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
-#![allow(clippy::all)]
-#![warn(clippy::default)]
+#![allow(clippy::all, clippy::print_stdout, clippy::print_stderr)]
 
 use std::{collections::HashSet, io::Write as _, path::PathBuf};
 
