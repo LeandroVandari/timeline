@@ -6,6 +6,7 @@ license-file.workspace = true
 
 [dependencies]
 bevy = { version = "0.19.0", default-features = false, features = ["2d"] }
+temporal_rs = "0.2.3"
 timeline_core = { path = "../timeline_core", features = ["date_iteration"] }
 tracing = "0.1.44"
 log = { version = "*", features = [

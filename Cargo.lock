@@ -4734,6 +4734,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "log",
+ "temporal_rs",
  "timeline_core",
  "tracing",
 ]
