@@ -68,18 +68,6 @@ pub struct TimelineHorizontalOffset(f32);
 #[component(on_add = add_rendered_timeline)]
 pub struct TimelineVerticalOffset(f32);
 
-impl TimelineLineSeparation {
-    #[allow(clippy::allow_attributes)]
-    #[allow(unused)]
-    pub fn from_range_and_width(range: &TimelineRenderRange, width: f32) -> Self {
-        #[expect(
-            clippy::cast_precision_loss,
-            reason = "Losing precision is fine, we just want the distance to be as close as possible"
-        )]
-        Self(width / (range.0.len() - 1) as f32)
-    }
-}
-
 impl TimelineRenderRange {
     pub fn inc(&mut self) {
         self.0.end = self.0.end.get_next().unwrap();
