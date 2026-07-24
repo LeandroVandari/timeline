@@ -1,4 +1,5 @@
 use bevy::{
+    camera::visibility::RenderLayers,
     dev_tools::diagnostics_overlay::{DiagnosticsOverlay, DiagnosticsOverlayPlugin},
     diagnostic::FrameTimeDiagnosticsPlugin,
     input::common_conditions::input_just_pressed,
@@ -19,6 +20,7 @@ use crate::{
     zooming::ZoomLevel,
 };
 
+#[derive(Default)]
 pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
@@ -30,12 +32,17 @@ impl Plugin for DebugPlugin {
             MeshAllocatorDiagnosticPlugin,
         ));
 
-        app.add_systems(Startup, Self::spawn_diagnostics_overlay);
+        app.add_systems(
+            PreStartup,
+            (Self::spawn_diagnostics_overlay, Self::spawn_full_view_cam),
+        );
         app.add_systems(
             Update,
             (
                 Self::draw_timeline_gizmos,
                 Self::toggle_diagnostics_overlay.run_if(input_just_pressed(KeyCode::F1)),
+                Self::toggle_full_view_cam.run_if(input_just_pressed(KeyCode::F2)),
+                Self::update_full_view_cam_render_layers,
             ),
         );
     }
@@ -93,4 +100,33 @@ impl DebugPlugin {
             visibility.toggle_inherited_hidden();
         }
     }
+
+    fn toggle_full_view_cam(mut cam: Single<&mut Camera, With<FullViewCamera>>) {
+        cam.is_active = !cam.is_active;
+    }
+
+    fn spawn_full_view_cam(mut commands: Commands) {
+        commands.spawn((
+            Camera {
+                order: 100,
+                is_active: false,
+                ..Default::default()
+            },
+            Camera2d,
+            FullViewCamera,
+            RenderLayers::none(),
+        ));
+    }
+
+    fn update_full_view_cam_render_layers(
+        mut cam_query: Single<&mut RenderLayers, With<FullViewCamera>>,
+        render_layers_query: Query<&RenderLayers, (Without<FullViewCamera>, Changed<RenderLayers>)>,
+    ) {
+        for added_layers in render_layers_query {
+            **cam_query = (*cam_query).union(added_layers);
+        }
+    }
 }
+
+#[derive(Component, Debug)]
+struct FullViewCamera;
