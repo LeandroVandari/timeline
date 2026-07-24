@@ -1,5 +1,8 @@
 use bevy::{prelude::*, winit::WinitSettings};
-use timeline_gui::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
+use timeline_gui::{
+    setup::SetupPlugin,
+    timeline::{RenderedTimeline, rendering::TimelineRendererPlugin},
+};
 
 fn main() -> AppExit {
     App::new()
@@ -23,5 +26,13 @@ fn main() -> AppExit {
             #[cfg(feature = "debug")]
             timeline_gui::debug::DebugPlugin,
         ))
+        .add_systems(Startup, spawn_timeline)
         .run()
+}
+
+fn spawn_timeline(mut commands: Commands) {
+    commands.spawn((
+        RenderedTimeline,
+        Transform::from_translation(Vec3::splat(0.)),
+    ));
 }
