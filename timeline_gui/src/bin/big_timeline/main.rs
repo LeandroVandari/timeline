@@ -1,16 +1,5 @@
-#![expect(clippy::needless_pass_by_value, reason = "Bevy Queries")]
 use bevy::{prelude::*, winit::WinitSettings};
-
-use crate::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
-
-#[cfg(feature = "debug")]
-mod debug;
-mod dragging;
-mod query_ext;
-mod setup;
-mod timeline;
-mod wrap_around;
-mod zooming;
+use timeline_gui::{setup::SetupPlugin, timeline::rendering::TimelineRendererPlugin};
 
 fn main() -> AppExit {
     App::new()
@@ -32,7 +21,7 @@ fn main() -> AppExit {
             SetupPlugin,
             TimelineRendererPlugin,
             #[cfg(feature = "debug")]
-            debug::DebugPlugin,
+            timeline_gui::debug::DebugPlugin,
         ))
         .run()
 }
