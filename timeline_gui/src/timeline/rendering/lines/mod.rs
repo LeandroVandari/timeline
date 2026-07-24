@@ -42,7 +42,8 @@ impl Plugin for TimelineLinesPlugin {
                 .after(ZoomSet),
         )
         .add_systems(Update, drag::update_timeline_offset_on_drag)
-        .add_observer(Self::year_label_wrap_around);
+        .add_observer(Self::update_timeline_offset_on_year_label_wrap_around)
+        .add_observer(Self::update_year_label_on_wrap_around);
     }
 }
 
@@ -109,21 +110,38 @@ impl TimelineLinesPlugin {
         Ok(())
     }
 
-    fn year_label_wrap_around(
+    fn update_timeline_offset_on_year_label_wrap_around(
         trigger: On<WrapAroundEvent>,
-        mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
         mut timeline_info_query: Query<(
-            &mut TimelineRenderRange,
             &mut TimelineHorizontalOffset,
             &TimelineLineSeparation,
             &ZoomLevel,
         )>,
+        wrapped_label_query: Query<&ChildOf, With<YearLabel>>,
+    ) {
+        let Ok(ChildOf(parent)) = wrapped_label_query.get(trigger.entity) else {
+            return;
+        };
+
+        let (mut offset, &line_separation, &zoom_level) =
+            timeline_info_query.get_mut(*parent).unwrap();
+
+        match trigger.direction {
+            WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),
+            WrapDirection::Right => **offset = (-*line_separation).mul_add(*zoom_level, **offset),
+        }
+    }
+
+    fn update_year_label_on_wrap_around(
+        trigger: On<WrapAroundEvent>,
+        mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
+        mut timeline_range_query: Query<&mut TimelineRenderRange>,
     ) {
         let Ok((mut year, mut text_label, parent)) = label_query.get_mut(trigger.entity) else {
             return;
         };
 
-        let (mut range, mut offset, &line_separation, &zoom_level) = timeline_info_query
+        let mut range = timeline_range_query
             .get_mut(parent.0)
             .expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange and TimelineHorizontalPosition.");
 
@@ -139,11 +157,6 @@ impl TimelineLinesPlugin {
             }
         }
         text_label.0 = year.0.to_string();
-        // Update the timeline's x pos
-        match trigger.direction {
-            WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),
-            WrapDirection::Right => **offset = (-*line_separation).mul_add(*zoom_level, **offset),
-        }
     }
 }
 
