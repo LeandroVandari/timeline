@@ -55,15 +55,24 @@ impl DebugPlugin {
         )>,
         window: Single<&Window, With<PrimaryWindow>>,
     ) {
-        for (offset, &zoom, &line_separation, render_range, pos, screen_size) in query.iter() {
+        for (hoffset, &zoom, &line_separation, render_range, pos, screen_size) in query.iter() {
             let size = screen_size.map_or(window.size(), |s| **s);
             gizmos.line_2d(
-                Vec2::new(**offset, -size.y / 2.),
-                Vec2::new(**offset, size.y / 2.),
+                Vec2::new(
+                    pos.translation.x + **hoffset,
+                    pos.translation.y - size.y.midpoint(100.),
+                ),
+                Vec2::new(
+                    pos.translation.x + **hoffset,
+                    pos.translation.y + size.y.midpoint(100.),
+                ),
                 Color::linear_rgb(0., 0., 1.),
             );
             gizmos.rect_2d(
-                Isometry2d::from_translation(Vec2::new(**offset, pos.translation.y)),
+                Isometry2d::from_translation(Vec2::new(
+                    pos.translation.x + **hoffset,
+                    pos.translation.y,
+                )),
                 Vec2::new(draw_width(render_range, line_separation, zoom), size.y),
                 Color::linear_rgb(0., 1., 0.),
             );
@@ -71,10 +80,11 @@ impl DebugPlugin {
     }
 
     fn spawn_diagnostics_overlay(mut commands: Commands) {
-        commands.spawn(DiagnosticsOverlay::fps());
+        commands.spawn((DiagnosticsOverlay::fps(), Visibility::Hidden));
         commands.spawn((
             DiagnosticsOverlay::mesh_and_standard_material(),
             UiTransform::from_translation(Val2::px(0_u32, 100_u32)),
+            Visibility::Hidden,
         ));
     }
 
