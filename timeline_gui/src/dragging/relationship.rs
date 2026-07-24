@@ -20,6 +20,7 @@ pub struct HorizontallyDraggedBy(pub Entity);
 pub struct DraggedBy(VerticallyDraggedBy, HorizontallyDraggedBy);
 
 impl DraggedBy {
+    #[must_use]
     pub fn new(entity: Entity) -> Self {
         Self(VerticallyDraggedBy(entity), HorizontallyDraggedBy(entity))
     }

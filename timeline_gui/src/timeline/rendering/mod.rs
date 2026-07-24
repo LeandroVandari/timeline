@@ -62,6 +62,7 @@ impl Plugin for TimelineRendererPlugin {
     clippy::cast_precision_loss,
     reason = "Will only lose precision for extreme ranges"
 )]
+#[must_use]
 pub fn draw_width(
     render_range: &TimelineRenderRange,
     line_separation: TimelineLineSeparation,
