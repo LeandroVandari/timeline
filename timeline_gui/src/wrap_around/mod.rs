@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
-mod event;
+mod message;
 mod group;
 mod info;
 mod system_set;
 
-pub use event::WrapAroundEvent;
+pub use message::WrapAroundMessage;
 pub use info::WrapAroundInfo;
 pub use system_set::WrapAroundSet;
 
@@ -18,7 +18,8 @@ impl Plugin for WrapAroundPlugin {
         app.add_systems(
             Update,
             Self::handle_wrap_around.in_set(system_set::WrapAroundSet),
-        );
+        )
+        .add_message::<WrapAroundMessage>();
     }
 }
 
@@ -26,9 +27,9 @@ impl WrapAroundPlugin {
     fn handle_wrap_around(
         moved_query: Query<(&mut Transform, &WrapAround, Entity), Changed<Transform>>,
         wrap_info_query: Query<&WrapAroundInfo>,
-        mut commands: Commands,
+        mut wrap_around_message_writer: MessageWriter<WrapAroundMessage>,
     ) {
-        for (mut pos, WrapAround(wrap_entity), entity) in moved_query {
+        wrap_around_message_writer.write_batch(moved_query.into_iter().filter_map(|(mut pos, WrapAround(wrap_entity), entity)| {
             let Ok(&WrapAroundInfo {
                 center,
                 half_width,
@@ -38,17 +39,16 @@ impl WrapAroundPlugin {
                 error!(
                     "Couldn't get information to wrap around. That is probably because target `WrapAroundGroup` has had its `WrapAroundInfo` component removed."
                 );
-                continue;
+                return None;
             };
-
+            
             let diff_center = pos.translation.x - center;
             if diff_center.abs() > half_width {
                 // Wrap it around by adding or subtracting a width
                 pos.translation.x =
                     (half_width * 2.).mul_add(-diff_center.signum(), pos.translation.x);
-
                 if emit_message {
-                    commands.trigger(WrapAroundEvent {
+                    return Some(WrapAroundMessage {
                         entity,
                         direction: if diff_center.is_sign_positive() {
                             WrapDirection::Right
@@ -56,9 +56,11 @@ impl WrapAroundPlugin {
                             WrapDirection::Left
                         },
                     });
+                    
                 }
             }
-        }
+            None
+        }));
     }
 }
 

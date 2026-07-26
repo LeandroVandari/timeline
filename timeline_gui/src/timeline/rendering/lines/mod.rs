@@ -6,7 +6,7 @@ use tracing::instrument;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
-use crate::wrap_around::{self, WrapAround, WrapAroundEvent, WrapDirection};
+use crate::wrap_around::{self, WrapAround, WrapAroundMessage, WrapDirection};
 use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
 use crate::{
     dragging::relationship::{DraggedBy, HorizontallyDraggedBy},
@@ -42,8 +42,14 @@ impl Plugin for TimelineLinesPlugin {
                 .after(ZoomSet),
         )
         .add_systems(Update, drag::update_timeline_offset_on_drag)
-        .add_observer(Self::update_timeline_offset_on_year_label_wrap_around)
-        .add_observer(Self::update_year_label_on_wrap_around);
+        .add_systems(
+            Update,
+            (
+                Self::update_year_label_on_wrap_around,
+                Self::update_timeline_offset_on_wrap_around,
+            )
+                .after(wrap_around::WrapAroundSet),
+        );
     }
 }
 
@@ -110,53 +116,57 @@ impl TimelineLinesPlugin {
         Ok(())
     }
 
-    fn update_timeline_offset_on_year_label_wrap_around(
-        trigger: On<WrapAroundEvent>,
+    fn update_timeline_offset_on_wrap_around(
+        mut wrap_around_messages: PopulatedMessageReader<WrapAroundMessage>,
         mut timeline_info_query: Query<(
             &mut TimelineHorizontalOffset,
             &TimelineLineSeparation,
             &ZoomLevel,
         )>,
-        wrapped_label_query: Query<&ChildOf, With<YearLabel>>,
+        wrap_around_query: Query<&WrapAround>,
     ) {
-        let Ok(ChildOf(parent)) = wrapped_label_query.get(trigger.entity) else {
-            return;
-        };
+        for WrapAroundMessage { entity, direction } in wrap_around_messages.read() {
+            let Ok(WrapAround(timeline_entity)) = wrap_around_query.get(*entity) else {
+                return;
+            };
 
-        let (mut offset, &line_separation, &zoom_level) =
-            timeline_info_query.get_mut(*parent).unwrap();
-
-        match trigger.direction {
-            WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),
-            WrapDirection::Right => **offset = (-*line_separation).mul_add(*zoom_level, **offset),
+            let (mut offset, &line_separation, &zoom_level) =
+                timeline_info_query.get_mut(*timeline_entity).unwrap();
+            match direction {
+                WrapDirection::Left => **offset = line_separation.mul_add(*zoom_level, **offset),
+                WrapDirection::Right => {
+                    **offset = (-*line_separation).mul_add(*zoom_level, **offset);
+                }
+            }
         }
     }
 
     fn update_year_label_on_wrap_around(
-        trigger: On<WrapAroundEvent>,
+        mut wrap_around_messages: PopulatedMessageReader<WrapAroundMessage>,
         mut label_query: Query<(&mut YearLabel, &mut Text2d, &ChildOf)>,
         mut timeline_range_query: Query<&mut TimelineRenderRange>,
     ) {
-        let Ok((mut year, mut text_label, parent)) = label_query.get_mut(trigger.entity) else {
-            return;
-        };
-
-        let mut range = timeline_range_query
+        for WrapAroundMessage { entity, direction } in wrap_around_messages.read() {
+            let Ok((mut year, mut text_label, parent)) = label_query.get_mut(*entity) else {
+                return;
+            };
+            let mut range = timeline_range_query
             .get_mut(parent.0)
             .expect("`entity` is the RenderedTimeline which also has a TimelineRenderRange and TimelineHorizontalPosition.");
 
-        // Update the timeline range and the label
-        match trigger.direction {
-            WrapDirection::Left => {
-                range.inc();
-                year.0 = range.0.end.clone();
+            // Update the timeline range and the label
+            match direction {
+                WrapDirection::Left => {
+                    range.inc();
+                    year.0 = range.0.end.clone();
+                }
+                WrapDirection::Right => {
+                    range.dec();
+                    year.0 = range.0.start.clone();
+                }
             }
-            WrapDirection::Right => {
-                range.dec();
-                year.0 = range.0.start.clone();
-            }
+            text_label.0 = year.0.to_string();
         }
-        text_label.0 = year.0.to_string();
     }
 }
 

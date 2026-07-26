@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-#[derive(Debug, EntityEvent)]
-pub struct WrapAroundEvent {
+#[derive(Debug, Message)]
+pub struct WrapAroundMessage {
     pub entity: Entity,
     pub direction: super::WrapDirection,
 }
