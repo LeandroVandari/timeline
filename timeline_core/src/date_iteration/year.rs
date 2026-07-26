@@ -7,7 +7,7 @@ use temporal_rs::{Calendar, PlainDate, TemporalError, TemporalResult, partial::P
 
 use super::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Year(i32);
 
 impl Year {
@@ -34,7 +34,7 @@ impl Year {
 
     #[must_use]
     pub fn months(&self) -> MonthIterator {
-        self.clone().into()
+        (*self).into()
     }
 
     #[must_use]

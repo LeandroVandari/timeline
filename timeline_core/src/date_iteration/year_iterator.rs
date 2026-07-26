@@ -50,7 +50,7 @@ impl IntoIterator for &YearRange {
     fn into_iter(self) -> Self::IntoIter {
         YearIterator {
             curr: self.start.as_date(),
-            end: Some(self.end.clone()),
+            end: Some(self.end),
         }
     }
 }
