@@ -3,3 +3,6 @@ rustflags = ["-Ctarget-cpu=native"]
 
 [env]
 MTL_HUD_ENABLED="1"
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
