@@ -1,12 +1,14 @@
+use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 #[cfg(target_os = "macos")]
-use bevy::picking::{hover::PickingInteraction, pointer::PointerInteraction};
 use bevy::{
-    camera::visibility::RenderLayers, input::gestures::PinchGesture, prelude::*,
-    window::PrimaryWindow,
+    input::gestures::PinchGesture,
+    picking::{hover::PickingInteraction, pointer::PointerInteraction},
 };
 use tracing::instrument;
 
-use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineScreenSize};
+#[cfg(target_os = "macos")]
+use crate::timeline::rendering::configuration::TimelineLineSeparation;
+use crate::timeline::rendering::configuration::TimelineScreenSize;
 use bevy_drag::DragMessage;
 use bevy_zoom::ZoomMessage;
 
