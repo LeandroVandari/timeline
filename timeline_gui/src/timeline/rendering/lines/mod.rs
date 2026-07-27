@@ -5,16 +5,14 @@ use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
+use crate::timeline::rendering::configuration::RenderedTimelineCreatedMessage;
 use crate::timeline::rendering::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
 use crate::timeline::rendering::lines::relationship_label::LabelOf;
-use crate::wrap_around::{self, WrapAround, WrapAroundMessage, WrapDirection};
-use crate::zooming::{ZoomLevel, ZoomMessage, ZoomSet};
-use crate::{
-    dragging::relationship::{HorizontallyDraggedBy, VerticallyDraggedBy},
-    timeline::rendering::configuration::RenderedTimelineCreatedMessage,
-};
+use bevy_drag::relationship::{HorizontallyDraggedBy, VerticallyDraggedBy};
+use bevy_wrap::{WrapAround, WrapAroundMessage, WrapAroundSet, WrapDirection};
+use bevy_zoom::{ZoomLevel, ZoomMessage, ZoomSet};
 
 mod drag;
 mod setup;
@@ -40,7 +38,7 @@ impl Plugin for TimelineLinesPlugin {
                 zoom::update_offset_on_zoom,
                 zoom::create_lines_on_zoom,
                 zoom::update_wrap_around_info_on_zoom
-                    .before(wrap_around::WrapAroundSet)
+                    .before(WrapAroundSet)
                     .run_if(on_message::<ZoomMessage>),
             )
                 .chain()
@@ -53,7 +51,7 @@ impl Plugin for TimelineLinesPlugin {
                 Self::update_year_label_on_wrap_around,
                 Self::update_timeline_offset_on_wrap_around,
             )
-                .after(wrap_around::WrapAroundSet),
+                .after(WrapAroundSet),
         );
     }
 }

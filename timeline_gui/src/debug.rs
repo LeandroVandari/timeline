@@ -9,16 +9,13 @@ use bevy::{
     window::PrimaryWindow,
 };
 
-use crate::{
-    timeline::rendering::{
-        configuration::{
-            TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
-            TimelineScreenSize,
-        },
-        draw_width,
+use crate::timeline::rendering::{
+    configuration::{
+        TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
     },
-    zooming::ZoomLevel,
+    draw_width,
 };
+use bevy_zoom::ZoomLevel;
 
 #[derive(Default)]
 pub struct DebugPlugin;

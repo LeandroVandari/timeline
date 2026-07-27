@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::wrap_around::WrapAroundInfo;
+use super::WrapAroundInfo;
 
 #[derive(Debug, Component)]
 #[relationship_target(relationship = super::WrapAround)]

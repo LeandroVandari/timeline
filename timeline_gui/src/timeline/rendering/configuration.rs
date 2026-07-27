@@ -25,7 +25,7 @@ static TIMELINE_RENDER_LAYER: AtomicUsize = AtomicUsize::new(1);
     TimelineHorizontalOffset(0.),
     TimelineVerticalOffset(0.),
     RenderLayers = next_render_layer(),
-    crate::zooming::ZoomLevel
+    bevy_zoom::ZoomLevel
 )]
 pub struct RenderedTimeline;
 

@@ -701,6 +701,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_drag"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "query_ext",
+ "tracing",
+]
+
+[[package]]
 name = "bevy_dylib"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1777,6 +1786,24 @@ dependencies = [
  "serde",
  "thiserror 2.0.19",
  "uuid",
+]
+
+[[package]]
+name = "bevy_wrap"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "tracing",
+]
+
+[[package]]
+name = "bevy_zoom"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_drag",
+ "query_ext",
+ "tracing",
 ]
 
 [[package]]
@@ -4090,6 +4117,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d55d956fa96f5ec02be2e13af0e20391a5aa83d6a074e3ad368959d0fab299ea"
 
 [[package]]
+name = "query_ext"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "tracing",
+]
+
+[[package]]
 name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4774,7 +4809,11 @@ name = "timeline_gui"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_drag",
+ "bevy_wrap",
+ "bevy_zoom",
  "log",
+ "query_ext",
  "temporal_rs",
  "timeline_core",
  "tracing",

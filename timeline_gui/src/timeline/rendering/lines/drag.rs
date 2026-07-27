@@ -1,10 +1,8 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::{
-    dragging::DragMessage,
-    timeline::rendering::configuration::{TimelineHorizontalOffset, TimelineVerticalOffset},
-};
+use crate::timeline::rendering::configuration::{TimelineHorizontalOffset, TimelineVerticalOffset};
+use bevy_drag::DragMessage;
 
 #[instrument(skip_all)]
 pub fn update_timeline_offset_on_drag(

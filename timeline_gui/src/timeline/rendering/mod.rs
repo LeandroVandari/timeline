@@ -3,12 +3,12 @@ use bevy::camera::visibility::RenderLayers;
 use bevy::log::tracing::instrument;
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::dragging::DraggingPlugin;
 use crate::setup::MainCamera;
 use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineRenderRange};
 use crate::timeline::rendering::lines::TimelineLinesPlugin;
-use crate::wrap_around::WrapAroundPlugin;
-use crate::zooming::{ZoomLevel, ZoomingPlugin};
+use bevy_drag::DraggingPlugin;
+use bevy_wrap::WrapAroundPlugin;
+use bevy_zoom::{ZoomLevel, ZoomingPlugin};
 pub use configuration::RenderedTimeline;
 use configuration::RenderedTimelineCreatedMessage;
 

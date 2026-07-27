@@ -4,18 +4,16 @@ use bevy::{
 };
 use timeline_core::date_iteration::YearIterator;
 
-use crate::{
-    timeline::rendering::{
-        configuration::{
-            TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange,
-            TimelineScreenSize, TimelineVerticalOffset,
-        },
-        draw_width,
-        lines::VerticalLineRenderInfo,
+use crate::timeline::rendering::{
+    configuration::{
+        TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
+        TimelineVerticalOffset,
     },
-    wrap_around::WrapAroundInfo,
-    zooming::{ZoomLevel, ZoomMessage},
+    draw_width,
+    lines::VerticalLineRenderInfo,
 };
+use bevy_wrap::WrapAroundInfo;
+use bevy_zoom::{ZoomLevel, ZoomMessage};
 
 pub fn update_offset_on_zoom(
     mut zoom_messages: PopulatedMessageReader<ZoomMessage>,

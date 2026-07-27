@@ -1,17 +1,15 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
-use crate::{
-    dragging::relationship::VerticallyDraggedBy,
-    timeline::rendering::{
-        configuration::{
-            TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize, TimelineVerticalOffset,
-        },
-        draw_width,
+use crate::timeline::rendering::{
+    configuration::{
+        TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize, TimelineVerticalOffset,
     },
-    wrap_around::WrapAroundInfo,
-    zooming::ZoomLevel,
+    draw_width,
 };
+use bevy_drag::relationship::VerticallyDraggedBy;
+use bevy_wrap::WrapAroundInfo;
+use bevy_zoom::ZoomLevel;
 
 use super::VerticalLineRenderInfo;
 

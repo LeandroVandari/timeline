@@ -7,7 +7,8 @@ use bevy::{
 use tracing::instrument;
 
 use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineScreenSize};
-use crate::{dragging::DragMessage, zooming::ZoomMessage};
+use bevy_drag::DragMessage;
+use bevy_zoom::ZoomMessage;
 
 #[instrument(skip_all)]
 pub fn spawn_timeline_background(

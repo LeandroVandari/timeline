@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::query_ext::QueryExt as _;
 pub use messages::DragMessage;
+use query_ext::QueryExt as _;
 use relationship::{
     HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };

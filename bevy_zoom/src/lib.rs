@@ -6,12 +6,10 @@ mod system_set;
 pub use message::ZoomMessage;
 use tracing::instrument;
 
-use crate::{
-    dragging::relationship::{
-        HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
-    },
-    query_ext::QueryExt as _,
+use bevy_drag::relationship::{
+    HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
+use query_ext::QueryExt as _;
 pub use system_set::ZoomSet;
 
 pub struct ZoomingPlugin;
