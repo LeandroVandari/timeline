@@ -9,7 +9,11 @@ fn main() -> AppExit {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Timeline Creator".into(),
-                present_mode: bevy::window::PresentMode::Fifo,
+                present_mode: if cfg!(feature = "profiling") {
+                    bevy::window::PresentMode::AutoNoVsync
+                } else {
+                    bevy::window::PresentMode::Fifo
+                },
                 #[cfg(feature = "wasm_website")]
                 canvas: Some("#timeline-canvas".into()),
                 fit_canvas_to_parent: true,
