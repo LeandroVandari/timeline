@@ -4,7 +4,7 @@ wasm:
 	wasm-bindgen --out-name timeline --target web ../target/wasm32-unknown-unknown/wasm-release/big_timeline.wasm --out-dir wasm_output
 	wasm-opt -Oz --all-features --output wasm_output/optimized.wasm wasm_output/timeline_bg.wasm
 	mv wasm_output/optimized.wasm wasm_output/timeline_bg.wasm
-	cp -r assets/ wasm_output/assets/
+	if test -d assets; then cp -r assets/ wasm_output/assets/; fi
 	echo '''<!DOCTYPE html> \
 	<html lang="en"> \
 	<head> \
