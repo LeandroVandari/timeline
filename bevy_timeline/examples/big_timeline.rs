@@ -1,8 +1,5 @@
 use bevy::{prelude::*, winit::WinitSettings};
-use timeline_gui::{
-    setup::SetupPlugin,
-    timeline::{RenderedTimeline, rendering::TimelineRendererPlugin},
-};
+use bevy_timeline::{RenderedTimeline, TimelineRendererPlugin};
 
 fn main() -> AppExit {
     App::new()
@@ -29,10 +26,9 @@ fn main() -> AppExit {
         })
         .insert_resource(ClearColor(Color::hsv(0., 0., 0.3)))
         .add_plugins((
-            SetupPlugin,
             TimelineRendererPlugin,
             #[cfg(feature = "debug")]
-            timeline_gui::debug::DebugPlugin,
+            bevy_timeline::debug::DebugPlugin,
         ))
         .add_systems(Startup, spawn_timeline)
         .run()
@@ -40,7 +36,7 @@ fn main() -> AppExit {
 
 fn spawn_timeline(mut commands: Commands) {
     commands.spawn((
-        RenderedTimeline,
+        RenderedTimeline::default(),
         Transform::from_translation(Vec3::splat(0.)),
     ));
 }

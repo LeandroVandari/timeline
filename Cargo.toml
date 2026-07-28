@@ -1,6 +1,14 @@
 [workspace]
 resolver = "3"
-members = ["bevy_drag", "bevy_wrap", "bevy_zoom", "query_ext", "timeline_cli", "timeline_core", "timeline_gui"]
+members = [
+    "bevy_drag",
+    "bevy_wrap",
+    "bevy_zoom",
+    "query_ext",
+    "timeline_cli",
+    "timeline_core",
+    "bevy_timeline",
+]
 package.license-file = "LICENSE"
 package.repository = "https://github.com/LeandroVandari/timeline#"
 

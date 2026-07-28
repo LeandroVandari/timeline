@@ -9,11 +9,8 @@ use bevy::{
     window::PrimaryWindow,
 };
 
-use crate::timeline::rendering::{
-    configuration::{
-        TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
-    },
-    draw_width,
+use crate::configuration::{
+    TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
 };
 use bevy_zoom::ZoomLevel;
 
@@ -77,7 +74,10 @@ impl DebugPlugin {
                     pos.translation.x + **hoffset,
                     pos.translation.y,
                 )),
-                Vec2::new(draw_width(render_range, line_separation, zoom), size.y),
+                Vec2::new(
+                    crate::RenderedTimeline::draw_width(render_range, line_separation, zoom),
+                    size.y,
+                ),
                 Color::linear_rgb(0., 1., 0.),
             );
         }

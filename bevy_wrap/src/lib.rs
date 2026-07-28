@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
-mod message;
 mod group;
 mod info;
+mod message;
 mod system_set;
 
-pub use message::WrapAroundMessage;
 pub use info::WrapAroundInfo;
+pub use message::WrapAroundMessage;
 pub use system_set::WrapAroundSet;
 
 use group::WrapAroundGroup;

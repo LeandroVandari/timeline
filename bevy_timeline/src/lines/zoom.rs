@@ -4,12 +4,12 @@ use bevy::{
 };
 use timeline_core::date_iteration::YearIterator;
 
-use crate::timeline::rendering::{
+use crate::{
+    RenderedTimeline,
     configuration::{
         TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize,
         TimelineVerticalOffset,
     },
-    draw_width,
     lines::VerticalLineRenderInfo,
 };
 use bevy_wrap::WrapAroundInfo;
@@ -43,7 +43,7 @@ pub fn update_wrap_around_info_on_zoom(
     for (&zoom, &line_separation, render_range, mut wrap_around_info) in
         updated_timelines.iter_mut()
     {
-        let occupied_space = draw_width(render_range, line_separation, zoom);
+        let occupied_space = RenderedTimeline::draw_width(render_range, line_separation, zoom);
         wrap_around_info.half_width = f32::midpoint(occupied_space, *line_separation * *zoom);
     }
 }
@@ -92,7 +92,8 @@ pub fn create_lines_on_zoom(
 
         let scaled_line_separation = *line_separation * *zoom_level;
         let render_size = size.map_or(window.size(), |s| **s);
-        let occupied_space = draw_width(&render_range, line_separation, zoom_level);
+        let occupied_space =
+            RenderedTimeline::draw_width(&render_range, line_separation, zoom_level);
 
         #[expect(
             clippy::cast_sign_loss,

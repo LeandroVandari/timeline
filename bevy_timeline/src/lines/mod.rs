@@ -5,11 +5,11 @@ use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
 use tracing::instrument;
 
-use crate::timeline::rendering::configuration::RenderedTimelineCreatedMessage;
-use crate::timeline::rendering::configuration::{
+use crate::configuration::{
     TimelineHorizontalOffset, TimelineLineSeparation, TimelineRenderRange, TimelineVerticalOffset,
 };
-use crate::timeline::rendering::lines::relationship_label::LabelOf;
+use crate::lines::relationship_label::LabelOf;
+use crate::message::RenderedTimelineCreatedMessage;
 use bevy_drag::relationship::{HorizontallyDraggedBy, VerticallyDraggedBy};
 use bevy_wrap::{WrapAround, WrapAroundMessage, WrapAroundSet, WrapDirection};
 use bevy_zoom::{ZoomLevel, ZoomMessage, ZoomSet};

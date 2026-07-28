@@ -1,11 +1,11 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
 use tracing::instrument;
 
-use crate::timeline::rendering::{
+use crate::{
+    RenderedTimeline,
     configuration::{
         TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize, TimelineVerticalOffset,
     },
-    draw_width,
 };
 use bevy_drag::relationship::VerticallyDraggedBy;
 use bevy_wrap::WrapAroundInfo;
@@ -37,7 +37,8 @@ impl super::TimelineLinesPlugin {
                 timeline_info_query.get(added_render_info.entity()).unwrap();
             let render_size = size.map_or(window.size(), |s| **s);
 
-            let draw_width = draw_width(render_range, line_separation, zoom_level);
+            let draw_width =
+                RenderedTimeline::draw_width(render_range, line_separation, zoom_level);
 
             commands.entity(added_render_info.entity()).insert((
                 VerticalLineRenderInfo {
@@ -109,7 +110,8 @@ impl super::TimelineLinesPlugin {
             // Vertical lines for years
 
             let year_iterator = render_range.0.into_iter();
-            let draw_width = draw_width(render_range, line_separation, zoom_level);
+            let draw_width =
+                RenderedTimeline::draw_width(render_range, line_separation, zoom_level);
             Self::spawn_vertical_lines(
                 &mut commands,
                 timeline_entity,

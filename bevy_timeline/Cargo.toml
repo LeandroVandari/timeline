@@ -1,5 +1,5 @@
 [package]
-name = "timeline_gui"
+name = "bevy_timeline"
 version = "0.1.0"
 edition = "2024"
 license-file.workspace = true

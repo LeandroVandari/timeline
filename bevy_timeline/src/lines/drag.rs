@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use tracing::instrument;
 
-use crate::timeline::rendering::configuration::{TimelineHorizontalOffset, TimelineVerticalOffset};
+use crate::configuration::{TimelineHorizontalOffset, TimelineVerticalOffset};
 use bevy_drag::DragMessage;
 
 #[instrument(skip_all)]

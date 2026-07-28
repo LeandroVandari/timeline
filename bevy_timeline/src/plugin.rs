@@ -1,71 +1,48 @@
-use bevy::camera::Viewport;
-use bevy::camera::visibility::RenderLayers;
-use bevy::log::tracing::instrument;
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{
+    camera::{Viewport, visibility::RenderLayers},
+    prelude::*,
+    window::PrimaryWindow,
+};
+use tracing::instrument;
 
-use crate::setup::MainCamera;
-use crate::timeline::rendering::configuration::{TimelineLineSeparation, TimelineRenderRange};
-use crate::timeline::rendering::lines::TimelineLinesPlugin;
-use bevy_drag::DraggingPlugin;
-use bevy_wrap::WrapAroundPlugin;
-use bevy_zoom::{ZoomLevel, ZoomingPlugin};
-pub use configuration::RenderedTimeline;
-use configuration::RenderedTimelineCreatedMessage;
-
-mod background;
-pub mod configuration;
-
-mod lines;
+use crate::{RenderedTimeline, message::RenderedTimelineCreatedMessage};
 
 pub struct TimelineRendererPlugin;
 
+#[derive(Debug, Component)]
+pub struct MainCamera;
+
 impl Plugin for TimelineRendererPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                Self::spawn_timeline_camera,
-                background::spawn_timeline_background,
-            ),
-        )
-        .add_observer(
-            |trigger: On<Add, RenderedTimeline>,
-             mut writer: MessageWriter<RenderedTimelineCreatedMessage>| {
-                info!(
-                    "Spawning rendering components for timeline {}",
-                    trigger.entity
-                );
+        app.add_systems(Startup, Self::spawn_main_camera)
+            .add_systems(Update, Self::spawn_timeline_camera)
+            .add_observer(
+                |trigger: On<Add, RenderedTimeline>,
+                 mut writer: MessageWriter<RenderedTimelineCreatedMessage>| {
+                    info!(
+                        "Spawning rendering components for timeline {}",
+                        trigger.entity
+                    );
 
-                writer.write(RenderedTimelineCreatedMessage::from_trigger(trigger));
-            },
-        )
-        .add_message::<RenderedTimelineCreatedMessage>()
-        .add_plugins((
-            DraggingPlugin,
-            ZoomingPlugin,
-            TimelineLinesPlugin,
-            WrapAroundPlugin,
-        ));
-
-        #[cfg(target_os = "macos")]
-        app.add_systems(Update, background::emit_timeline_zoom_message_on_pinch);
+                    writer.write(RenderedTimelineCreatedMessage::from_trigger(trigger));
+                },
+            )
+            .add_message::<RenderedTimelineCreatedMessage>()
+            .add_plugins((
+                bevy_drag::DraggingPlugin,
+                bevy_zoom::ZoomingPlugin,
+                crate::lines::TimelineLinesPlugin,
+                bevy_wrap::WrapAroundPlugin,
+                crate::input::TimelineInputHandlerPlugin,
+            ));
     }
 }
 
-#[expect(
-    clippy::cast_precision_loss,
-    reason = "Will only lose precision for extreme ranges"
-)]
-#[must_use]
-pub fn draw_width(
-    render_range: &TimelineRenderRange,
-    line_separation: TimelineLineSeparation,
-    zoom: ZoomLevel,
-) -> f32 {
-    (render_range.0.len() - 1) as f32 * *line_separation * *zoom
-}
-
 impl TimelineRendererPlugin {
+    fn spawn_main_camera(mut commands: Commands) {
+        commands.spawn((Camera2d, MainCamera));
+    }
+
     /// Creates a new camera to render the timeline whose [`RenderedTimeline`] was just spawned.
     ///
     /// We need to make sure only the proper area from the timeline is drawn by creating a custom camera just to render it whose viewport spans exactly
@@ -81,7 +58,7 @@ impl TimelineRendererPlugin {
         window: Single<&Window, With<PrimaryWindow>>,
 
         timeline_info_query: Query<(
-            Option<&configuration::TimelineScreenSize>,
+            Option<&crate::configuration::TimelineScreenSize>,
             &Transform,
             &RenderLayers,
         )>,
