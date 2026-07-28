@@ -63,9 +63,9 @@ impl TimelineRendererPlugin {
             &RenderLayers,
         )>,
 
-        mut added_render_infos: PopulatedMessageReader<RenderedTimelineCreatedMessage>,
+        mut new_rendered_timelines: PopulatedMessageReader<RenderedTimelineCreatedMessage>,
     ) {
-        for msg in added_render_infos.read() {
+        for msg in new_rendered_timelines.read() {
             let entity = msg.entity();
             let (size, pos, render_layers) = timeline_info_query.get(entity).expect("The message is only called with an entity that has RenderedTimeline, and thus its required components.");
             trace!("Spawning camera for timeline {entity}");

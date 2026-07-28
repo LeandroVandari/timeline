@@ -30,12 +30,12 @@ impl TimelineInputHandlerPlugin {
     pub fn spawn_timeline_background(
         mut commands: Commands,
         render_info_query: Query<(Option<&TimelineScreenSize>, &Transform, &RenderLayers)>,
-        mut added_render_infos: PopulatedMessageReader<
+        mut new_rendered_timelines: PopulatedMessageReader<
             crate::message::RenderedTimelineCreatedMessage,
         >,
         window: Single<&Window, With<PrimaryWindow>>,
     ) {
-        for msg in added_render_infos.read() {
+        for msg in new_rendered_timelines.read() {
             let entity = msg.entity();
             trace!("Spawning background for timeline {entity}");
             let (size, pos, render_layers) = render_info_query

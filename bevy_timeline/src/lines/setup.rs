@@ -16,7 +16,7 @@ use super::VerticalLineRenderInfo;
 impl super::TimelineLinesPlugin {
     #[tracing::instrument(skip_all)]
     pub(super) fn create_vertical_line_render_info(
-        mut added_render_infos: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
+        mut new_rendered_timelines: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
         mut commands: Commands,
         mut materials: ResMut<Assets<ColorMaterial>>,
         mut meshes: ResMut<Assets<Mesh>>,
@@ -28,19 +28,19 @@ impl super::TimelineLinesPlugin {
         )>,
         window: Single<&Window, With<PrimaryWindow>>,
     ) {
-        for added_render_info in added_render_infos.read() {
+        for msg in new_rendered_timelines.read() {
             trace!(
                 "Creating vertical line render info for timeline {}",
-                added_render_info.entity()
+                msg.entity()
             );
             let (size, render_range, &line_separation, &zoom_level) =
-                timeline_info_query.get(added_render_info.entity()).unwrap();
+                timeline_info_query.get(msg.entity()).unwrap();
             let render_size = size.map_or(window.size(), |s| **s);
 
             let draw_width =
                 RenderedTimeline::draw_width(render_range, line_separation, zoom_level);
 
-            commands.entity(added_render_info.entity()).insert((
+            commands.entity(msg.entity()).insert((
                 VerticalLineRenderInfo {
                     mesh: meshes.add(Rectangle::new(1., render_size.y)),
                     material: materials.add(Color::srgb(0.8, 0.8, 0.8)),
@@ -64,7 +64,7 @@ impl super::TimelineLinesPlugin {
     )]
     #[expect(clippy::type_complexity, reason = "Bevy's queries are a complex type")]
     pub(super) fn spawn_timeline_lines(
-        mut added_render_infos: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
+        mut new_rendered_timelines: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
 
         mut commands: Commands,
         window: Single<&Window, With<PrimaryWindow>>,
@@ -89,7 +89,7 @@ impl super::TimelineLinesPlugin {
             &ZoomLevel,
         )>,
     ) {
-        for msg in added_render_infos.read() {
+        for msg in new_rendered_timelines.read() {
             let timeline_entity = msg.entity();
             let (size, pos, render_layers, &line_separation, render_range, &zoom_level) =
                 render_info_query
