@@ -10,7 +10,7 @@ use crate::configuration::{
 };
 use crate::lines::relationship_label::LabelOf;
 use crate::message::RenderedTimelineCreatedMessage;
-use bevy_drag::relationship::{HorizontallyDraggedBy, VerticallyDraggedBy};
+use bevy_drag::{HorizontallyDraggedBy, VerticallyDraggedBy};
 use bevy_wrap::{WrapAround, WrapAroundMessage, WrapAroundSet, WrapDirection};
 use bevy_zoom::{ZoomLevel, ZoomMessage, ZoomSet};
 

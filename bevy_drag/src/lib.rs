@@ -3,12 +3,12 @@ use tracing::instrument;
 
 pub use messages::DragMessage;
 use query_ext::QueryExt as _;
-use relationship::{
-    HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
+pub use relationship::{
+    DraggedBy, HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
 };
 
 mod messages;
-pub mod relationship;
+mod relationship;
 
 pub struct DraggingPlugin;
 
@@ -33,21 +33,14 @@ impl DraggingPlugin {
         vertically_drags_query: Query<&VerticallyDrags>,
         horizontally_drags_query: Query<&HorizontallyDrags>,
     ) {
-        for drag_message in drag_messages.read() {
-            let dragged_entity = drag_message.entity();
-            let delta = drag_message.delta();
-
-            vertically_drags_query.for_each_matching(dragged_entity, &mut drag_query, |mut pos| {
-                pos.translation.y -= delta.y;
+        for DragMessage { drag_entity, delta } in drag_messages.read() {
+            vertically_drags_query.for_each_matching(*drag_entity, &mut drag_query, |mut pos| {
+                pos.translation.y += delta.y;
             });
 
-            horizontally_drags_query.for_each_matching(
-                dragged_entity,
-                &mut drag_query,
-                |mut pos| {
-                    pos.translation.x += delta.x;
-                },
-            );
+            horizontally_drags_query.for_each_matching(*drag_entity, &mut drag_query, |mut pos| {
+                pos.translation.x += delta.x;
+            });
         }
     }
 }

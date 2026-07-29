@@ -7,7 +7,7 @@ use crate::{
         TimelineLineSeparation, TimelineRenderRange, TimelineScreenSize, TimelineVerticalOffset,
     },
 };
-use bevy_drag::relationship::VerticallyDraggedBy;
+use bevy_drag::VerticallyDraggedBy;
 use bevy_wrap::WrapAroundInfo;
 use bevy_zoom::ZoomLevel;
 

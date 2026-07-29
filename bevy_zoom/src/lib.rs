@@ -6,9 +6,7 @@ mod system_set;
 pub use message::ZoomMessage;
 use tracing::instrument;
 
-use bevy_drag::relationship::{
-    HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags,
-};
+use bevy_drag::{HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags};
 use query_ext::QueryExt as _;
 pub use system_set::ZoomSet;
 

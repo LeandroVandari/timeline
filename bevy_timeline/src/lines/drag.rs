@@ -10,10 +10,11 @@ pub fn update_timeline_offset_on_drag(
     mut timeline_offset_query: Query<(&mut TimelineHorizontalOffset, &mut TimelineVerticalOffset)>,
 ) {
     for msg in drag_messages.read() {
-        let Ok((mut h_offset, mut v_offset)) = timeline_offset_query.get_mut(msg.entity()) else {
+        let Ok((mut h_offset, mut v_offset)) = timeline_offset_query.get_mut(msg.drag_entity)
+        else {
             continue;
         };
-        **h_offset += msg.delta().x;
-        **v_offset -= msg.delta().y;
+        **h_offset += msg.delta.x;
+        **v_offset += msg.delta.y;
     }
 }

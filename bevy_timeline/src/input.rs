@@ -76,7 +76,11 @@ impl TimelineInputHandlerPlugin {
                 .get(trigger.entity)
                 .expect("Background entity is always child of a RenderedTimeline entity.")
                 .parent();
-            writer.write(bevy_drag::DragMessage::new(timeline_entity, trigger.delta));
+            writer.write(bevy_drag::DragMessage {
+                drag_entity: timeline_entity,
+                // Y coordinates are reversed for mouse movements.
+                delta: trigger.delta.with_y(-trigger.delta.y),
+            });
         }
     }
 
