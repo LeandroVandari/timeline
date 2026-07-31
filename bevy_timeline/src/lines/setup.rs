@@ -63,7 +63,7 @@ impl super::TimelineLinesPlugin {
         reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"
     )]
     #[expect(clippy::type_complexity, reason = "Bevy's queries are a complex type")]
-    pub(super) fn spawn_timeline_lines(
+    pub(super) fn spawn_new_timeline_lines(
         mut new_rendered_timelines: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
 
         mut commands: Commands,
