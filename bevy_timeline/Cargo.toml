@@ -1,0 +1,40 @@
+[package]
+name = "bevy_timeline"
+version = "0.1.0"
+edition = "2024"
+license-file.workspace = true
+
+[dependencies]
+bevy = { version = "0.19.0", default-features = false, features = [
+    "bevy_camera",
+    "bevy_picking",
+    "sprite_picking",
+    "bevy_sprite",
+    "bevy_material",
+    "bevy_mesh",
+    "bevy_core_pipeline",
+    "bevy_sprite_render",
+    "bevy_winit",
+    "bevy_render",
+    "bevy_color",
+    "bevy_text",
+    "default_font",
+] }
+temporal_rs = "0.2.3"
+timeline_core = { path = "../timeline_core", features = ["date_iteration"] }
+
+bevy_drag = { version = "0.1.0", path = "../bevy_drag" }
+query_ext = { version = "0.1.0", path = "../query_ext" }
+bevy_zoom = { version = "0.1.0", path = "../bevy_zoom" }
+bevy_wrap = { version = "0.1.0", path = "../bevy_wrap" }
+
+
+[features]
+debug = [
+    "bevy/debug",
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_pbr",
+    "bevy/ui",
+    "bevy/bevy_gizmos_render",
+]
