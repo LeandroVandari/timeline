@@ -1,6 +1,8 @@
 wasm:
-	RUSTFLAGS="-Ctarget-cpu=generic"\
-		cargo  build \
+	RUSTFLAGS="-Ctarget-cpu=generic -Zlocation-detail=none -Zfmt-debug=none" \
+		cargo +nightly build \
+		-Zbuild-std=std,panic_abort \
+		-Z build-std-features="optimize_for_size" \
   		--no-default-features --profile wasm-release --target wasm32-unknown-unknown
 	mkdir -p wasm_output
 	wasm-bindgen --out-name timeline --target web ../target/wasm32-unknown-unknown/wasm-release/timeline_editor.wasm --out-dir wasm_output
