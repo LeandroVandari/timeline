@@ -25,6 +25,7 @@ log = { version = "*", default-features = false, features = [
 [features]
 default = ["debug"]
 debug = ["bevy_timeline/debug"]
+wasm = ["bevy/webgl2"]
 profiling = [
     "bevy/trace",
     "bevy/debug",
