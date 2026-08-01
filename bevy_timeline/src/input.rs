@@ -4,7 +4,6 @@ use bevy::{
     input::gestures::PinchGesture,
     picking::{hover::PickingInteraction, pointer::PointerInteraction},
 };
-use tracing::instrument;
 
 #[cfg(target_os = "macos")]
 use crate::configuration::TimelineLineSeparation;
@@ -26,7 +25,6 @@ impl Plugin for TimelineInputHandlerPlugin {
 pub struct InteractionBackground;
 
 impl TimelineInputHandlerPlugin {
-    #[instrument(skip_all)]
     pub fn spawn_timeline_background(
         mut commands: Commands,
         render_info_query: Query<(Option<&TimelineScreenSize>, &Transform, &RenderLayers)>,

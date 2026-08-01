@@ -1,4 +1,4 @@
-use bevy::{prelude::*, winit::WinitSettings};
+use bevy::prelude::*;
 use bevy_timeline::{
     RenderedTimeline, TimelineRendererPlugin,
     configuration::{TimelineRenderRange, TimelineScreenSize},
@@ -10,17 +10,11 @@ fn main() -> AppExit {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "Test Timelines".into(),
-                present_mode: bevy::window::PresentMode::Fifo,
+                title: "Timeline Example - Small Timeline".into(),
                 ..Default::default()
             }),
             ..Default::default()
         }))
-        .insert_resource(if cfg!(feature = "profiling") {
-            WinitSettings::continuous()
-        } else {
-            WinitSettings::desktop_app()
-        })
         .insert_resource(ClearColor(Color::hsv(0., 0., 0.3)))
         .add_plugins((
             TimelineRendererPlugin,

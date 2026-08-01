@@ -1,5 +1,4 @@
 use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
-use tracing::instrument;
 
 use crate::{
     RenderedTimeline,
@@ -14,7 +13,6 @@ use bevy_zoom::ZoomLevel;
 use super::VerticalLineRenderInfo;
 
 impl super::TimelineLinesPlugin {
-    #[tracing::instrument(skip_all)]
     pub(super) fn create_vertical_line_render_info(
         mut new_rendered_timelines: PopulatedMessageReader<super::RenderedTimelineCreatedMessage>,
         mut commands: Commands,
@@ -57,7 +55,6 @@ impl super::TimelineLinesPlugin {
     }
 
     /// Spawn the lines for each year and corresponding labels for drawing the timelines.
-    #[instrument(skip_all)]
     #[expect(
         clippy::cast_precision_loss,
         reason = "Layouting the timeline is best effort, losing some precision is fine and should only happen for huge values"

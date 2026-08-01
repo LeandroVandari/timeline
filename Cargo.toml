@@ -8,6 +8,7 @@ members = [
     "timeline_cli",
     "timeline_core",
     "bevy_timeline",
+    "timeline_editor",
 ]
 package.license-file = "LICENSE"
 package.repository = "https://github.com/LeandroVandari/timeline#"
@@ -23,4 +24,5 @@ strip = true
 
 [profile.wasm-release]
 inherits = "release"
+lto = "fat"
 opt-level = "z"

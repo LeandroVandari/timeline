@@ -59,7 +59,6 @@
 //! In order to allow the `dragger` to not have its [`Transform`] mutated (which might cause floating point precision issues, depending on use case), dragging is triggered through [`DragMessage`].
 
 use bevy::prelude::*;
-use tracing::instrument;
 
 pub use messages::DragMessage;
 use query_ext::QueryExt as _;
@@ -95,7 +94,6 @@ impl Plugin for DraggingPlugin {
 
 impl DraggingPlugin {
     #[expect(clippy::type_complexity, reason = "Bevy Queries are 'complex types'")]
-    #[instrument(skip_all)]
     fn handle_drag(
         mut drag_messages: PopulatedMessageReader<DragMessage>,
 

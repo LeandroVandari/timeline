@@ -12,7 +12,6 @@
 use bevy::ecs::query::QueryEntityError;
 use bevy::{camera::visibility::RenderLayers, prelude::*};
 use timeline_core::date_iteration::year::Year;
-use tracing::instrument;
 
 use crate::configuration::TimelineVerticalOffset;
 use crate::lines::relationship_label::LabelOf;
@@ -58,7 +57,6 @@ impl Plugin for TimelineLinesPlugin {
 }
 
 impl TimelineLinesPlugin {
-    #[instrument(skip_all)]
     fn spawn_vertical_lines(
         commands: &mut Commands,
         timeline_entity: Entity,

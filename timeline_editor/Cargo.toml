@@ -1,0 +1,33 @@
+[package]
+name = "timeline_editor"
+version = "0.1.0"
+edition = "2024"
+license-file.workspace = true
+repository.workspace = true
+
+[dependencies]
+bevy = { version = "0.19.0", default-features = false, features = [
+    "async_executor",
+    "multi_threaded",
+    "std",
+] }
+bevy_timeline = { version = "0.1.0", path = "../bevy_timeline" }
+
+tracing = { version = "0.1.44", features = [
+    "max_level_trace",
+    "release_max_level_off",
+] }
+log = { version = "*", default-features = false, features = [
+    "release_max_level_off",
+] }
+
+
+[features]
+default = ["debug"]
+debug = ["bevy_timeline/debug"]
+profiling = [
+    "bevy/trace",
+    "bevy/debug",
+    "bevy/trace_tracy",
+    "bevy/trace_tracy_memory",
+]

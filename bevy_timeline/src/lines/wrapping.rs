@@ -73,7 +73,6 @@ impl LineWrapAroundPlugin {
         }
     }
 
-    #[tracing::instrument]
     fn update_year_label_on_wrap_around(
         mut wrap_around_messages: PopulatedMessageReader<WrapAroundMessage>,
 

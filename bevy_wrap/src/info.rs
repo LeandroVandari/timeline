@@ -8,7 +8,6 @@ pub struct WrapAroundInfo {
 }
 
 impl Default for WrapAroundInfo {
-    #[tracing::instrument]
     fn default() -> Self {
         warn!(
             "Creating default WrapAroundInfo. \

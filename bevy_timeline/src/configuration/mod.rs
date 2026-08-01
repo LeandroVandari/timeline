@@ -1,6 +1,5 @@
 use crate::RenderedTimeline;
 use bevy::ecs::{lifecycle::HookContext, world::DeferredWorld};
-use tracing::instrument;
 
 mod line_separation;
 mod offsets;
@@ -12,7 +11,6 @@ pub use offsets::{TimelineHorizontalOffset, TimelineVerticalOffset};
 pub use render_range::TimelineRenderRange;
 pub use screen_size::TimelineScreenSize;
 
-#[instrument(skip_all)]
 fn add_rendered_timeline(mut world: DeferredWorld, ctx: HookContext) {
     world
         .commands()

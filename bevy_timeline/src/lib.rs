@@ -39,6 +39,7 @@ pub struct RenderedTimeline {
 }
 
 impl RenderedTimeline {
+    #[must_use]
     pub fn new(manager: TimelineManager) -> Self {
         Self { manager }
     }

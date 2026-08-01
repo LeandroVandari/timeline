@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
     window::PrimaryWindow,
 };
-use tracing::instrument;
+// use tracing::instrument;
 
 use crate::{RenderedTimeline, message::RenderedTimelineCreatedMessage};
 
@@ -50,7 +50,6 @@ impl TimelineRendererPlugin {
     /// This is needed so that events/labels can get cut off rather than popping into existance.
     ///
     /// I'm not sure of the performance implications of multiple cameras, but I'm pretty sure it's not too bad.
-    #[instrument(skip_all)]
     fn spawn_timeline_camera(
         mut commands: Commands,
 

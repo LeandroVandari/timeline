@@ -7,7 +7,6 @@ use bevy::{
     },
     prelude::*,
 };
-use tracing::instrument;
 
 pub trait QueryExt<'a, FN> {
     fn for_each_matching<D, F>(
@@ -30,7 +29,6 @@ where
     QueryItem<'a, DParent>: Deref,
     <QueryItem<'a, DParent> as Deref>::Target: RelationshipTarget,
 {
-    #[instrument(skip_all)]
     #[inline]
     fn for_each_matching<D, F>(
         &'a self,

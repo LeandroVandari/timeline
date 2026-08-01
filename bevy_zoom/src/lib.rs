@@ -4,11 +4,10 @@ mod message;
 mod system_set;
 
 pub use message::ZoomMessage;
-use tracing::instrument;
+pub use system_set::ZoomSet;
 
 use bevy_drag::{HorizontallyDraggedBy, HorizontallyDrags, VerticallyDraggedBy, VerticallyDrags};
 use query_ext::QueryExt as _;
-pub use system_set::ZoomSet;
 
 pub struct ZoomingPlugin;
 
@@ -24,7 +23,6 @@ pub struct ZoomLevel(f32);
 
 impl ZoomingPlugin {
     #[expect(clippy::type_complexity, reason = "Bevy Queries are 'complex types'")]
-    #[instrument(skip_all)]
     fn handle_zoom(
         mut zoom_messages: PopulatedMessageReader<ZoomMessage>,
 

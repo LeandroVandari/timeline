@@ -706,7 +706,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "query_ext",
- "tracing",
 ]
 
 [[package]]
@@ -1598,11 +1597,9 @@ dependencies = [
  "bevy_drag",
  "bevy_wrap",
  "bevy_zoom",
- "log",
  "query_ext",
  "temporal_rs",
  "timeline_core",
- "tracing",
 ]
 
 [[package]]
@@ -1809,7 +1806,6 @@ name = "bevy_wrap"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "tracing",
 ]
 
 [[package]]
@@ -1819,7 +1815,6 @@ dependencies = [
  "bevy",
  "bevy_drag",
  "query_ext",
- "tracing",
 ]
 
 [[package]]
@@ -4137,7 +4132,6 @@ name = "query_ext"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "tracing",
 ]
 
 [[package]]
@@ -4818,6 +4812,16 @@ dependencies = [
  "slotmap",
  "temporal_rs",
  "thiserror 2.0.19",
+]
+
+[[package]]
+name = "timeline_editor"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_timeline",
+ "log",
+ "tracing",
 ]
 
 [[package]]
