@@ -27,6 +27,5 @@ debug = [
     "bevy/bevy_pbr",
     "bevy/ui",
 ]
-wasm_website = []
 profiling = ["bevy/trace", "bevy/debug", "bevy/trace_tracy"]
 default = ["debug"]
