@@ -23,9 +23,10 @@ log = { version = "*", default-features = false, features = [
 
 
 [features]
-default = ["debug"]
+default = ["debug", "dynamic"]
 debug = ["bevy_timeline/debug"]
-wasm = ["bevy/webgl2"]
+dynamic = ["bevy/dynamic_linking"]
+wasm = ["bevy/webgpu"]
 profiling = [
     "bevy/trace",
     "bevy/debug",
