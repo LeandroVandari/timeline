@@ -35,7 +35,7 @@ wasm_debug:
   		--no-default-features --target wasm32-unknown-unknown \
 		--features wasm,debug
 	mkdir -p wasm_output
-	wasm-bindgen --out-name timeline --target web ../target/wasm32-unknown-unknown/wasm-release/timeline_editor.wasm --out-dir wasm_output
+	wasm-bindgen --out-name timeline --target web ../target/wasm32-unknown-unknown/debug/timeline_editor.wasm --out-dir wasm_output
 	if test -d assets; then cp -r assets/ wasm_output/assets/; fi
 	echo '''<!DOCTYPE html> \
 		<html lang="en"> \
