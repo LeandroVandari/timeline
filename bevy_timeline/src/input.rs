@@ -5,8 +5,6 @@ use bevy::{
     picking::{hover::PickingInteraction, pointer::PointerInteraction},
 };
 
-#[cfg(target_os = "macos")]
-use crate::configuration::TimelineLineSeparation;
 use crate::configuration::TimelineScreenSize;
 
 pub struct TimelineInputHandlerPlugin;
@@ -110,7 +108,6 @@ impl TimelineInputHandlerPlugin {
 
         mut writer: MessageWriter<bevy_zoom::ZoomMessage>,
         child_query: Query<&ChildOf>,
-        mut line_separation_query: Query<&mut TimelineLineSeparation>,
 
         interaction_background: Query<(Entity, &PickingInteraction), With<InteractionBackground>>,
         pointer_interaction: Query<&PointerInteraction>,
@@ -140,11 +137,6 @@ impl TimelineInputHandlerPlugin {
                         })
                     })
                     .unwrap();
-
-                line_separation_query
-                    .get_mut(timeline_entity)
-                    .expect("RenderedTimeline always has a TimelineLineSeparation child.")
-                    .0 *= zoom_factor;
 
                 writer.write(bevy_zoom::ZoomMessage::new(
                     timeline_entity,
