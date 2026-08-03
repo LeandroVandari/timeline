@@ -1,4 +1,7 @@
-use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
+use bevy::{
+    camera::visibility::RenderLayers, input::mouse::MouseScrollUnit, prelude::*,
+    window::PrimaryWindow,
+};
 #[cfg(target_os = "macos")]
 use bevy::{
     input::gestures::PinchGesture,
@@ -93,7 +96,20 @@ impl TimelineInputHandlerPlugin {
             .get(trigger.entity)
             .expect("Background entity is always child of a RenderedTimeline entity.")
             .parent();
-        let zoom_factor = 1. + trigger.y / 100.;
+
+        let zoom_factor = match trigger.unit {
+            // MacOS
+            MouseScrollUnit::Line => 1. + trigger.y / 100.,
+            // Everybody else
+            MouseScrollUnit::Pixel => 1. + f32::log2(trigger.y.abs()).copysign(trigger.y) / 100.,
+        };
+        trace!(
+            "Zooming with factor {zoom_factor}; y change: {}; Scroll unit: {:?}",
+            trigger.y, trigger.unit
+        );
+        if !(0.5..=1.5).contains(&zoom_factor) {
+            warn!("zoom_factor outside normal range: {zoom_factor}");
+        }
 
         writer.write(bevy_zoom::ZoomMessage::new(
             timeline_entity,
@@ -137,7 +153,7 @@ impl TimelineInputHandlerPlugin {
                         })
                     })
                     .unwrap();
-
+                trace!("Pinching in with factor {zoom_factor}");
                 writer.write(bevy_zoom::ZoomMessage::new(
                     timeline_entity,
                     zoom_factor,
