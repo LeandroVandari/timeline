@@ -1,6 +1,8 @@
 use bevy::{
-    camera::visibility::RenderLayers, input::mouse::MouseScrollUnit, prelude::*,
-    window::PrimaryWindow,
+    camera::visibility::RenderLayers,
+    input::mouse::MouseScrollUnit,
+    prelude::*,
+    window::{PrimaryWindow, WindowResized},
 };
 #[cfg(target_os = "macos")]
 use bevy::{
@@ -8,20 +10,25 @@ use bevy::{
     picking::{hover::PickingInteraction, pointer::PointerInteraction},
 };
 
-use crate::configuration::TimelineScreenSize;
+use crate::{RenderedTimeline, configuration::TimelineScreenSize};
 
 pub struct TimelineInputHandlerPlugin;
 
 impl Plugin for TimelineInputHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, Self::spawn_timeline_background);
+        app.add_systems(
+            Update,
+            (
+                Self::spawn_timeline_background,
+                Self::resize_background_on_window_resize,
+            ),
+        );
 
         #[cfg(target_os = "macos")]
         app.add_systems(Update, Self::emit_timeline_zoom_message_on_pinch);
     }
 }
 
-#[cfg(target_os = "macos")]
 #[derive(Debug, Component)]
 pub struct InteractionBackground;
 
@@ -56,12 +63,29 @@ impl TimelineInputHandlerPlugin {
                     pos.with_translation(Vec3::new(0., 0., -100.)),
                     Pickable::default(),
                     render_layers.clone(),
-                    #[cfg(target_os = "macos")]
                     InteractionBackground,
                     ChildOf(entity),
                 ))
                 .observe(Self::emit_timeline_drag_message)
                 .observe(Self::emit_timeline_zoom_message);
+        }
+    }
+
+    fn resize_background_on_window_resize(
+        mut resize_reader: PopulatedMessageReader<WindowResized>,
+        mut interaction_backgrounds: Query<(&mut Sprite, &ChildOf), With<InteractionBackground>>,
+
+        timeline_query: Query<(), (With<RenderedTimeline>, Without<TimelineScreenSize>)>,
+    ) {
+        for resize in resize_reader.read() {
+            for (mut sprite, &ChildOf(timeline_entity)) in interaction_backgrounds.iter_mut() {
+                if timeline_query.contains(timeline_entity) {
+                    sprite.custom_size = Some(Vec2 {
+                        x: resize.width,
+                        y: resize.height,
+                    });
+                }
+            }
         }
     }
 
