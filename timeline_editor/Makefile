@@ -1,6 +1,8 @@
 wasm:
-	RUSTFLAGS="-Ctarget-cpu=generic" \
-		cargo build \
+	RUSTFLAGS="-Zunstable-options -Ctarget-cpu=generic -Cpanic=immediate-abort -Zlocation-detail=none -Zfmt-debug=none" \
+		cargo +nightly build \
+		-Z build-std=std,panic_abort \
+  		-Z build-std-features="optimize_for_size" \
   		--no-default-features --profile wasm-release --target wasm32-unknown-unknown \
 		--features wasm
 	mkdir -p wasm_output
