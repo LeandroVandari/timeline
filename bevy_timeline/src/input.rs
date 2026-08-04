@@ -1,12 +1,13 @@
-use bevy::{camera::visibility::RenderLayers, prelude::*, window::PrimaryWindow};
+use bevy::{
+    camera::visibility::RenderLayers, input::mouse::MouseScrollUnit, prelude::*,
+    window::PrimaryWindow,
+};
 #[cfg(target_os = "macos")]
 use bevy::{
     input::gestures::PinchGesture,
     picking::{hover::PickingInteraction, pointer::PointerInteraction},
 };
 
-#[cfg(target_os = "macos")]
-use crate::configuration::TimelineLineSeparation;
 use crate::configuration::TimelineScreenSize;
 
 pub struct TimelineInputHandlerPlugin;
@@ -95,7 +96,20 @@ impl TimelineInputHandlerPlugin {
             .get(trigger.entity)
             .expect("Background entity is always child of a RenderedTimeline entity.")
             .parent();
-        let zoom_factor = 1. + trigger.y / 100.;
+
+        let zoom_factor = match trigger.unit {
+            // MacOS
+            MouseScrollUnit::Line => 1. + trigger.y / 100.,
+            // Everybody else
+            MouseScrollUnit::Pixel => 1. + f32::log2(trigger.y.abs()).copysign(trigger.y) / 100.,
+        };
+        trace!(
+            "Zooming with factor {zoom_factor}; y change: {}; Scroll unit: {:?}",
+            trigger.y, trigger.unit
+        );
+        if !(0.5..=1.5).contains(&zoom_factor) {
+            warn!("zoom_factor outside normal range: {zoom_factor}");
+        }
 
         writer.write(bevy_zoom::ZoomMessage::new(
             timeline_entity,
@@ -110,7 +124,6 @@ impl TimelineInputHandlerPlugin {
 
         mut writer: MessageWriter<bevy_zoom::ZoomMessage>,
         child_query: Query<&ChildOf>,
-        mut line_separation_query: Query<&mut TimelineLineSeparation>,
 
         interaction_background: Query<(Entity, &PickingInteraction), With<InteractionBackground>>,
         pointer_interaction: Query<&PointerInteraction>,
@@ -140,12 +153,7 @@ impl TimelineInputHandlerPlugin {
                         })
                     })
                     .unwrap();
-
-                line_separation_query
-                    .get_mut(timeline_entity)
-                    .expect("RenderedTimeline always has a TimelineLineSeparation child.")
-                    .0 *= zoom_factor;
-
+                trace!("Pinching in with factor {zoom_factor}");
                 writer.write(bevy_zoom::ZoomMessage::new(
                     timeline_entity,
                     zoom_factor,

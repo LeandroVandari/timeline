@@ -1,9 +1,11 @@
 use bevy::{
     camera::visibility::RenderLayers,
-    dev_tools::diagnostics_overlay::{DiagnosticsOverlay, DiagnosticsOverlayPlugin},
+    dev_tools::diagnostics_overlay::{
+        DiagnosticsOverlay, DiagnosticsOverlayItem, DiagnosticsOverlayPlugin,
+        DiagnosticsOverlayStatistic,
+    },
     diagnostic::FrameTimeDiagnosticsPlugin,
     input::common_conditions::input_just_pressed,
-    pbr::diagnostic::MaterialAllocatorDiagnosticPlugin,
     prelude::*,
     render::diagnostic::MeshAllocatorDiagnosticPlugin,
     window::PrimaryWindow,
@@ -22,7 +24,6 @@ impl Plugin for DebugPlugin {
         app.add_plugins((
             FrameTimeDiagnosticsPlugin::default(),
             DiagnosticsOverlayPlugin,
-            MaterialAllocatorDiagnosticPlugin::<StandardMaterial>::new(""),
             MeshAllocatorDiagnosticPlugin,
         ));
 
@@ -86,7 +87,7 @@ impl DebugPlugin {
     fn spawn_diagnostics_overlay(mut commands: Commands) {
         commands.spawn((DiagnosticsOverlay::fps(), Visibility::Hidden));
         commands.spawn((
-            DiagnosticsOverlay::mesh_and_standard_material(),
+            Self::mesh_diagnostics(),
             UiTransform::from_translation(Val2::px(0_u32, 100_u32)),
             Visibility::Hidden,
         ));
@@ -105,13 +106,14 @@ impl DebugPlugin {
     fn spawn_full_view_cam(mut commands: Commands) {
         commands.spawn((
             Camera {
-                order: 100,
+                order: isize::MAX,
                 is_active: false,
+                clear_color: ClearColorConfig::None,
                 ..Default::default()
             },
             Camera2d,
             FullViewCamera,
-            RenderLayers::none(),
+            RenderLayers::layer(0),
         ));
     }
 
@@ -121,6 +123,29 @@ impl DebugPlugin {
     ) {
         for added_layers in render_layers_query {
             **cam_query = (*cam_query).union(added_layers);
+        }
+    }
+
+    fn mesh_diagnostics() -> DiagnosticsOverlay {
+        DiagnosticsOverlay {
+            title: "Mesh".into(),
+            items: vec![
+                DiagnosticsOverlayItem {
+                    path: MeshAllocatorDiagnosticPlugin::slabs_diagnostic_path().clone(),
+                    statistic: DiagnosticsOverlayStatistic::Smoothed,
+                    precision: 0,
+                },
+                DiagnosticsOverlayItem {
+                    path: MeshAllocatorDiagnosticPlugin::slabs_size_diagnostic_path().clone(),
+                    statistic: DiagnosticsOverlayStatistic::Smoothed,
+                    precision: 0,
+                },
+                DiagnosticsOverlayItem {
+                    path: MeshAllocatorDiagnosticPlugin::allocations_diagnostic_path().clone(),
+                    statistic: DiagnosticsOverlayStatistic::Smoothed,
+                    precision: 0,
+                },
+            ],
         }
     }
 }

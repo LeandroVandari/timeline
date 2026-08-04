@@ -32,9 +32,7 @@ bevy_wrap = { version = "0.1.0", path = "../bevy_wrap" }
 [features]
 debug = [
     "bevy/debug",
-    "bevy/dynamic_linking",
     "bevy/bevy_dev_tools",
-    "bevy/bevy_pbr",
     "bevy/ui",
     "bevy/bevy_gizmos_render",
 ]

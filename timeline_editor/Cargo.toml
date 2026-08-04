@@ -14,17 +14,20 @@ bevy = { version = "0.19.0", default-features = false, features = [
 bevy_timeline = { version = "0.1.0", path = "../bevy_timeline" }
 
 tracing = { version = "0.1.44", features = [
-    "max_level_trace",
+    "max_level_info",
     "release_max_level_off",
 ] }
 log = { version = "*", default-features = false, features = [
+    "max_level_info",
     "release_max_level_off",
 ] }
 
 
 [features]
-default = ["debug"]
-debug = ["bevy_timeline/debug"]
+default = ["debug", "dynamic"]
+debug = ["bevy_timeline/debug", "bevy/bevy_log"]
+dynamic = ["bevy/dynamic_linking"]
+wasm = ["bevy/webgpu"]
 profiling = [
     "bevy/trace",
     "bevy/debug",
