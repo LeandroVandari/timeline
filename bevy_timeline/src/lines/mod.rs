@@ -27,6 +27,8 @@ mod setup;
 mod translation;
 mod wrapping;
 
+mod window_resize;
+
 pub struct TimelineLinesPlugin;
 
 impl Plugin for TimelineLinesPlugin {
@@ -44,6 +46,7 @@ impl Plugin for TimelineLinesPlugin {
             )
                 .chain(),
         )
+        .add_systems(Update, window_resize::update_lines_on_window_resize)
         .configure_sets(
             Update,
             (
@@ -116,6 +119,9 @@ struct VerticalLineRenderInfo {
     mesh: Handle<Mesh>,
     material: Handle<ColorMaterial>,
 }
+
+#[derive(Debug, Component)]
+pub struct MainTimelineLine;
 
 #[derive(Debug, Component)]
 struct YearLabel(pub Year);

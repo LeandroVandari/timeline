@@ -96,12 +96,14 @@ impl super::TimelineLinesPlugin {
             let render_size = size.map_or(window.size(), |s| **s);
 
             // Main, horizontal line
-            commands.entity(timeline_entity).with_child((
+            commands.spawn((
+                ChildOf(timeline_entity),
                 VerticallyDraggedBy(timeline_entity),
                 Mesh2d(meshes.add(Rectangle::new(render_size.x, 3.))),
                 MeshMaterial2d(materials.add(Color::srgb(0.9, 0.9, 0.9))),
                 pos.with_translation(Vec3::ZERO),
                 render_layers.clone(),
+                super::MainTimelineLine,
             ));
 
             // Vertical lines for years

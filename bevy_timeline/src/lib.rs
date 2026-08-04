@@ -8,6 +8,7 @@ use timeline_core::{
     date_iteration::{YearRange, year::Year},
 };
 
+mod camera;
 pub mod configuration;
 #[cfg(feature = "debug")]
 pub mod debug;
