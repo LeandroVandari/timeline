@@ -19,7 +19,7 @@ pub fn create_lines(
         &ZoomLevel,
         &TimelineLineSeparation,
         &mut TimelineRenderRange,
-        &mut TimelineHorizontalOffset,
+        &TimelineHorizontalOffset,
     )>,
 
     spawn_lines_info: Query<(
@@ -32,7 +32,7 @@ pub fn create_lines(
     mut commands: Commands,
 ) {
     for deficit in deficit_reader.read() {
-        let (&zoom_level, &line_separation, mut render_range, mut offset) = match timeline_info
+        let (&zoom_level, &line_separation, mut render_range, &offset) = match timeline_info
             .get_mut(deficit.timeline)
         {
             Ok(tup) => tup,
@@ -57,7 +57,7 @@ pub fn create_lines(
                 .skip(1)
                 .take(deficit.right.cast_unsigned());
             render_range.0.end = right_iter.clone().last().unwrap();
-            let offset = **offset;
+
             crate::lines::TimelineLinesPlugin::spawn_vertical_lines(
                 &mut commands,
                 deficit.timeline,
@@ -65,7 +65,7 @@ pub fn create_lines(
                 right_iter.enumerate().map(move |(i, y)| {
                     (
                         scaled_line_separation
-                            .mul_add((i + 1) as f32, occupied_space / 2. + offset),
+                            .mul_add((i + 1) as f32, occupied_space / 2. + *offset),
                         y,
                     )
                 }),
@@ -79,7 +79,7 @@ pub fn create_lines(
                 .skip(1)
                 .take(deficit.left.cast_unsigned());
             render_range.0.start = left_iter.clone().last().unwrap();
-            let offset = **offset;
+
             crate::lines::TimelineLinesPlugin::spawn_vertical_lines(
                 &mut commands,
                 deficit.timeline,
@@ -87,15 +87,12 @@ pub fn create_lines(
                 left_iter.enumerate().map(move |(i, y)| {
                     (
                         (-scaled_line_separation)
-                            .mul_add((i + 1) as f32, -occupied_space / 2. + offset),
+                            .mul_add((i + 1) as f32, -occupied_space / 2. + *offset),
                         y,
                     )
                 }),
             )
             .unwrap();
         }
-
-        **offset +=
-            (deficit.right.max(0) - deficit.left.max(0)) as f32 * scaled_line_separation / 2.;
     }
 }
