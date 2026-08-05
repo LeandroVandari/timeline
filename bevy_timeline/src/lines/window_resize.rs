@@ -4,7 +4,7 @@ use crate::{configuration::TimelineScreenSize, lines::MainTimelineLine};
 
 use super::VerticalLineRenderInfo;
 
-pub fn update_lines_on_window_resize(
+pub fn update_line_meshes_on_window_resize(
     mut resize_reader: PopulatedMessageReader<WindowResized>,
     mut meshes: ResMut<Assets<Mesh>>,
 
