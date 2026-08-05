@@ -7,6 +7,7 @@ use crate::configuration::{TimelineHorizontalOffset, TimelineLineSeparation};
 
 mod create;
 mod line_deficit;
+mod remove;
 
 pub struct LineInstantiationPlugin;
 
@@ -17,7 +18,8 @@ impl Plugin for LineInstantiationPlugin {
             (
                 line_deficit::calculate_line_deficit,
                 create::create_lines,
-                Self::update_timeline_offset,
+                // Remove and create can't run at the same time because otherwise spawning and despawning mess eachother up
+                (remove::remove_extra_lines, Self::update_timeline_offset),
             )
                 .chain()
                 .in_set(LineInstantiationSet),
@@ -49,8 +51,7 @@ impl LineInstantiationPlugin {
 
             let scaled_line_separation = *zoom_level * *line_separation;
 
-            **offset +=
-                (deficit.right.max(0) - deficit.left.max(0)) as f32 * scaled_line_separation / 2.;
+            **offset += (deficit.right - deficit.left) as f32 * scaled_line_separation / 2.;
         }
     }
 }

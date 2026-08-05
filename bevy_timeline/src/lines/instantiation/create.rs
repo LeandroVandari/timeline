@@ -32,6 +32,10 @@ pub fn create_lines(
     mut commands: Commands,
 ) {
     for deficit in deficit_reader.read() {
+        if deficit.left <= 0 && deficit.right <= 0 {
+            continue;
+        }
+
         let (&zoom_level, &line_separation, mut render_range, &offset) = match timeline_info
             .get_mut(deficit.timeline)
         {

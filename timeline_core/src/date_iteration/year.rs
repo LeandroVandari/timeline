@@ -7,7 +7,7 @@ use temporal_rs::{Calendar, PlainDate, TemporalError, TemporalResult, partial::P
 
 use super::{month_iterator::MonthIterator, year_iterator::YearIterator};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Hash, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Year(i32);
 
 impl Year {
