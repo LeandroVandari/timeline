@@ -1,8 +1,10 @@
 wasm:
-	RUSTFLAGS="-Ctarget-cpu=generic" \
-		cargo build \
+	RUSTFLAGS="-Zunstable-options -Ctarget-cpu=generic -Cpanic=immediate-abort -Zlocation-detail=none -Zfmt-debug=none" \
+		cargo +nightly build \
+		-Z build-std=std,panic_abort \
+  		-Z build-std-features="optimize_for_size" \
   		--no-default-features --profile wasm-release --target wasm32-unknown-unknown \
-		--features wasm
+		--features wasm,no_log
 	mkdir -p wasm_output
 	wasm-bindgen --out-name timeline --target web ../target/wasm32-unknown-unknown/wasm-release/timeline_editor.wasm --out-dir wasm_output
 	wasm-opt -Oz --all-features --output wasm_output/optimized.wasm wasm_output/timeline_bg.wasm
@@ -61,4 +63,4 @@ wasm_debug:
 
 
 profile:
-	cargo build --bin big_timeline -r --no-default-features --features profiling
+	cargo build -r --no-default-features --features profiling

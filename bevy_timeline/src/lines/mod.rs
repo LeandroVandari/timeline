@@ -46,7 +46,7 @@ impl Plugin for TimelineLinesPlugin {
             )
                 .chain(),
         )
-        .add_systems(Update, window_resize::update_lines_on_window_resize)
+        .add_systems(Update, window_resize::update_line_meshes_on_window_resize)
         .configure_sets(
             Update,
             (
